@@ -6,7 +6,7 @@ from robot_planning.environment.dynamics.bicycle_dynamics import BicycleDynamics
 import numpy as np
 
 def main():
-    config_path = "configs/run_rrt.cfg"
+    config_path = "configs/run_single_agent.cfg"
     config_data = ConfigParser.ConfigParser()
     config_data.read(config_path)
     agent1 = BicycleDynamics()

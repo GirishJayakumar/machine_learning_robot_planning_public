@@ -1,3 +1,10 @@
+def dynamics_factory_base(base_type):
+    if base_type == 'bicycle_dynamics':
+        from robot_planning.environment.dynamics.bicycle_dynamics import BicycleDynamics
+        return BicycleDynamics()
+    else:
+        raise ValueError('dynamics type {} not recognized'.format(base_type))
+
 def cost_evaluator_factory_base(base_type):
     if base_type == 'quadratic_cost':
         from robot_planning.environment.cost_evaluators import QuadraticCostEvaluator

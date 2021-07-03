@@ -37,7 +37,7 @@ class BicycleModelCollisionChecker(CollisionChecker): # TODO: This is currently 
                 return True
         if self.other_agents_list is not None:
             for agent in self.other_agents_list:
-                if np.linalg.norm(agent.state - state_cur[:2]) < 1: #TODO: this is hack. Implement kinematics...
+                if np.linalg.norm(agent.state[:2] - state_cur[:2]) < 1: #TODO: this is hack. Implement kinematics...
                     return True
         return False
 
