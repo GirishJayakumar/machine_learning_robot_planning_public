@@ -5,7 +5,6 @@ except ImportError:
 from robot_planning.environment.environment import Environment
 import numpy as np
 
-
 def main():
     config_path = "configs/run_environment.cfg"
     config_data = ConfigParser.ConfigParser()
@@ -17,7 +16,6 @@ def main():
     for i in range(100):
         states, costs = environment.step(actions)
         print(states, "    ", costs)
-
 
 if __name__ == '__main__':
     main()

@@ -26,8 +26,6 @@ class SimulatedDynamics(object):
     def get_action_dim(self):
         raise NotImplementedError
 
-    def delta_state(self, state1, state2):
-        return state1 - state2
 
 class NumpySimulatedDynamics(SimulatedDynamics):
     def __init__(self, dynamics_type=None, data_type=None, delta_t=None):
@@ -43,5 +41,5 @@ class NumpySimulatedDynamics(SimulatedDynamics):
     def get_action_dim(self):
         raise NotImplementedError
 
-    def propagate(self, actions, delta_t=None):
+    def propagate(self, state, action, delta_t=None):
         raise NotImplementedError

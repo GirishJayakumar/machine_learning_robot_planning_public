@@ -36,5 +36,12 @@ def goal_checker_factory_base(base_type):
     else:
         raise ValueError('goal_checker type {} not recognized'.format(base_type))
 
+def robot_factory_base(base_type):
+    if base_type == 'simulated_robot':
+        from robot_planning.environment.robots.simulated_robot import SimulatedRobot
+        return SimulatedRobot()
+    else:
+        raise ValueError('robot_name {} is not recognized'.format(base_type))
+
 
 
