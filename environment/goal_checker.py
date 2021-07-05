@@ -17,7 +17,7 @@ class GoalChecker(object):
         raise NotImplementedError
 
 
-class BicycleModelGoalChecker(GoalChecker):
+class StateSpaceGoalChecker(GoalChecker):
     def __init__(self, goal=None, kinematics=None):
         GoalChecker.__init__(self, goal, kinematics)
 
