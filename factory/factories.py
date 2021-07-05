@@ -17,6 +17,9 @@ def collision_checker_factory_base(base_type):
     if base_type == 'bicycle_model_collision_checker':
         from robot_planning.environment.collision_checker import BicycleModelCollisionChecker
         return BicycleModelCollisionChecker()
+    elif base_type == 'point_collision_checker':
+        from robot_planning.environment.collision_checker import PointCollisionChecker
+        return PointCollisionChecker()
     else:
         raise ValueError('collsion_checker type {} not recognized'.format(base_type))
 
@@ -30,11 +33,12 @@ def GUI_factory_base(base_type):
 
 
 def goal_checker_factory_base(base_type):
-    if base_type == 'bicycle_model_goal_checker':
-        from robot_planning.environment.goal_checker import BicycleModelGoalChecker
-        return BicycleModelGoalChecker()
+    if base_type == 'state_space_goal_checker':
+        from robot_planning.environment.goal_checker import StateSpaceGoalChecker
+        return StateSpaceGoalChecker()
     else:
         raise ValueError('goal_checker type {} not recognized'.format(base_type))
+
 
 def robot_factory_base(base_type):
     if base_type == 'simulated_robot':
@@ -43,5 +47,15 @@ def robot_factory_base(base_type):
     else:
         raise ValueError('robot_name {} is not recognized'.format(base_type))
 
+
+def kinematics_factory_base(base_type):
+    if base_type == 'bicycle_model_kinematics':
+        from robot_planning.environment.kinematics.simulated_kinematics import BicycleModelKinematics
+        return BicycleModelKinematics()
+    elif base_type == 'point_kinematics':
+        from robot_planning.environment.kinematics.simulated_kinematics import PointKinematics
+        return PointKinematics()
+    else:
+        raise ValueError('kinematics name {} is not recognized'.format(base_type))
 
 
