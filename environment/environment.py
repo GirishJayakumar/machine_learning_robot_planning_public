@@ -10,8 +10,9 @@ from robot_planning.factory.factories import robot_factory_base
 
 
 class Environment(object):
-    def __init__(self, agent_list=None):
+    def __init__(self, agent_list=None, steps_per_action=None):
         self.agent_list = agent_list
+        self.steps_per_action = steps_per_action
 
     def initialize_from_config(self, config_data, section_name):
         # self.num_robots = config_data.getint(section_name, 'num_robots')
@@ -24,13 +25,26 @@ class Environment(object):
             other_agents_list = copy.copy(self.agent_list)
             other_agents_list.pop(i)
             self.agent_list[i].cost_evaluator.collision_checker.set_other_agents_list(other_agents_list)
+        if config_data.has_option(section_name, 'steps_per_action'):
+            self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
+        else:
+            self.steps_per_action = 1
+
+    def single_step(self, actions):
+        states = []
+        costs = np.zeros(len(self.agent_list))
+        for i in range(len(self.agent_list)):
+            state_next = self.agent_list[i].propagate_robot(actions[:, i])
+            states.append(state_next)
+        for i in range(len(self.agent_list)):
+            cost = self.agent_list[i].evaluate_state_action_pair_cost(states[i], actions[:, i])
+            costs[i] = cost
+        return states, costs
 
     def step(self, actions):
-        states = []
-        costs = []
-        for i in range(len(self.agent_list)):
-            # print("Debug: ", actions[:, i], " ", actions[:, i].shape)
-            state_next, cost = self.agent_list[i].take_action(actions[:, i])
-            states.append(state_next)
-            costs.append(cost)
-        return states, costs
+        costs_sum = np.zeros(len(self.agent_list))
+        for i in range(self.steps_per_action):
+            states, costs = self.single_step(actions)
+            costs_sum += costs
+        return states, costs_sum
+
