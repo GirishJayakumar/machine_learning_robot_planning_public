@@ -47,7 +47,10 @@ class SimulatedRobot(Robot):
         cost_evaluator_section_name = config_data.get(section_name, 'cost_evaluator')
         self.cost_evaluator = factory_from_config(cost_evaluator_factory_base, config_data, cost_evaluator_section_name)
         self.data_type = config_data.get(section_name, 'data_type')
-        self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
+        if config_data.has_option(section_name, 'steps_per_action'):
+            self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
+        else:
+            self.steps_per_action = 1
 
     def get_state(self):
         return copy.copy(self.state)
@@ -80,27 +83,33 @@ class SimulatedRobot(Robot):
     def set_cost_evaluator(self, cost_evaluator):
         self.cost_evaluator = cost_evaluator
 
+    def propagate_robot(self, action):
+        assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
+        state_next = self.dynamics.propagate(self.state, action)
+        self.set_state(state_next)
+        self.steps += 1
+        return state_next
+
+    def evaluate_state_action_pair_cost(self, state, action):
+        return self.cost_evaluator.evaluate(state, action)
+
     def take_action(self, action):
-        assert isinstance(action, np.ndarray), 'simulated robot action must be of type numpy.ndarray!'
+        assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
         state_next = None
         cost = 0
         for _ in range(self.steps_per_action):
-            state_next = self.dynamics.propagate(self.state, action)
-            self.set_state(state_next)
-            cost += self.cost_evaluator.evaluate(state_next, action)
-            self.steps += 1
+            state_next = self.propagate_robot(action)
+            cost += self.evaluate_state_action_pair_cost(state_next, action)
         assert state_next is not None, 'invalid state!'
         return state_next, cost
 
     def take_action_sequence(self, actions):
-        assert isinstance(actions, np.ndarray), 'simulated robot actions must be of type numpy.ndarray'
+        assert isinstance(actions, np.ndarray), 'simulated robot has numpy.ndarray type action!'
         state_next = None
         cost = 0
         for action in actions:
-            state_next = self.dynamics.propagate(self.state, action)
-            self.set_state(state_next)
-            cost += self.cost_evaluator.evaluate(state_next, action)
-            self.steps += 1
+            state_next = self.propagate_robot(action)
+            cost += self.evaluate_state_action_pair_cost(state_next, action)
         assert state_next is None, 'invalid state!'
         return state_next, cost
 
