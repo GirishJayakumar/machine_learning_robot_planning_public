@@ -32,6 +32,7 @@ class Environment(object):
 
     def single_step(self, actions):
         states = []
+        observations = []
         costs = np.zeros(len(self.agent_list))
         for i in range(len(self.agent_list)):
             state_next = self.agent_list[i].propagate_robot(actions[:, i])
@@ -39,12 +40,25 @@ class Environment(object):
         for i in range(len(self.agent_list)):
             cost = self.agent_list[i].evaluate_state_action_pair_cost(states[i], actions[:, i])
             costs[i] = cost
-        return states, costs
+            observation_next = self.agent_list[i].observer.generate_observation(states)
+            observations.append(observation_next)
+
+        return states, observations, costs
 
     def step(self, actions):
         costs_sum = np.zeros(len(self.agent_list))
+        states, observations = None, None
         for i in range(self.steps_per_action):
-            states, costs = self.single_step(actions)
+            states, observations, costs = self.single_step(actions)
             costs_sum += costs
-        return states, costs_sum
+        return states, observations, costs_sum
+
+
+    def get_all_state_dims(self):
+        all_state_dims = [agent.dynamics.get_state_dim() for agent in self.agent_list]
+        return all_state_dims
+
+    def get_all_action_dims(self):
+        all_action_dims = [agent.dynamics.get_action_dim() for agent in self.agent_list]
+        return all_action_dims
 

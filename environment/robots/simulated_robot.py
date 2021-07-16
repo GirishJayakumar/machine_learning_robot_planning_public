@@ -1,6 +1,7 @@
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import dynamics_factory_base
 from robot_planning.factory.factories import cost_evaluator_factory_base
+from robot_planning.factory.factories import observer_base
 import numpy as np
 import copy
 import ast
@@ -51,6 +52,8 @@ class SimulatedRobot(Robot):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
         else:
             self.steps_per_action = 1
+        observer_section_name = config_data.get(section_name, 'observer')
+        self.observer = factory_from_config(observer_base, config_data, observer_section_name)
 
     def get_state(self):
         return copy.copy(self.state)
@@ -120,3 +123,4 @@ class SimulatedRobot(Robot):
     @property
     def delta_t(self):
         return self.dynamics.get_delta_t()
+

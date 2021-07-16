@@ -5,6 +5,7 @@ def dynamics_factory_base(base_type):
     else:
         raise ValueError('dynamics type {} not recognized'.format(base_type))
 
+
 def cost_evaluator_factory_base(base_type):
     if base_type == 'quadratic_cost':
         from robot_planning.environment.cost_evaluators import QuadraticCostEvaluator
@@ -59,3 +60,17 @@ def kinematics_factory_base(base_type):
         raise ValueError('kinematics name {} is not recognized'.format(base_type))
 
 
+def rl_agent_factory_base(base_type):
+    if base_type == 'maddpg':
+        from robot_planning.trainers.rl_agents.maddpg_agent import MADDPG_Agent
+        return MADDPG_Agent()
+    else:
+        raise ValueError('agent type {} is not recognized'.format(base_type))
+
+
+def observer_base(base_type):
+    if base_type == 'full_observation':
+        from robot_planning.environment.observer import FullStateObserver
+        return FullStateObserver()
+    else:
+        raise ValueError('observer type {} is not recognized'.format(base_type))

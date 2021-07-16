@@ -7,10 +7,10 @@ from robot_planning.trainers.trainer import Trainer
 
 def main():
     config_path = "configs/run_trainer.cfg"
-    confi_data = ConfigParser.ConfigParser()
-    confi_data.read(config_path)
+    config_data = ConfigParser.ConfigParser()
+    config_data.read(config_path)
     trainer = Trainer()
-    trainer.initialize_from_config(config_data=confi_data, section_name='trainer')
+    trainer.initialize_from_config(config_data=config_data, section_name='trainer')
 
 
 
