@@ -6,7 +6,6 @@ import numpy as np
 import copy
 import ast
 
-
 class Robot(object):
     def __init__(self):
         pass
@@ -66,6 +65,9 @@ class SimulatedRobot(Robot):
 
     def get_action_dim(self):
         return self.dynamics.get_action_dim()
+
+    def get_obs_dim(self):
+        return self.observer.get_obs_dim()
 
     def get_model_base_type(self):
         return self.dynamics.base_type
