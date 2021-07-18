@@ -1,6 +1,9 @@
 from robot_planning.environment.environment import Environment
+from robot_planning.trainers.replay_buffer import ReplayBuffer
+from robot_planning.trainers.utils import list_np2list_tensor, soft_update
 import ast
 import numpy as np
+import torch
 
 class BaseAgent:
     def __init__(self):
@@ -29,6 +32,8 @@ class BaseAgent:
         self.actor_optimizer = None
         self.critic_optimizer = None
 
+        self.replay_buffer = ReplayBuffer()
+
     def initialize_from_config(self, config_data, section_name):
         self.agent_index = config_data.getint(section_name, 'index')
         self.framework = config_data.get(section_name, 'type')
@@ -38,6 +43,7 @@ class BaseAgent:
         self.critic_lr = config_data.getfloat(section_name, 'critic_lr')
         self.tau = config_data.getfloat(section_name, 'tau')
         self.gamma = config_data.getfloat(section_name, 'gamma')
+        self.replay_buffer.initialize_from_config(config_data, section_name)
 
     def initialize_from_env(self, env: Environment):
         raise NotImplementedError
@@ -45,8 +51,7 @@ class BaseAgent:
     def initialize_networks(self):
         raise NotImplementedError
 
-    def step(self, full_state, epsilon_greedy=0.1, noise_rate=0.1, exploration=True):
-        obs = self._generate_actor_input(full_state)
+    def step(self, obs, epsilon_greedy=0.1, noise_rate=0.1, exploration=True):
         if np.random.uniform() < epsilon_greedy:
             action = np.random.uniform(-self.max_action, self.max_action, self.action_dim)
             return action
@@ -65,18 +70,44 @@ class BaseAgent:
 
         return action.copy()
 
-    def _generate_actor_input(self, full_state):
-        '''
-        Given the full state information of the N-agent system, generate the proper input to the actor network
-        :param full_state: full state information
-        :return: input to actor network
-        '''
-        raise NotImplementedError
+    def train_AC(self, transitions, next_actions):
+        observations, actions, rewards, next_observations, done = transitions
 
-    def _generate_critic_input(self, full_state):
-        '''
-        Given the full state information of the N-agent system, generate the proper input to the critic network
-        :param full_state: full state information
-        :return: input to critic network
-        '''
-        raise NotImplementedError
+        observations = list_np2list_tensor(observations)
+        actions = list_np2list_tensor(actions)
+        rewards = list_np2list_tensor(rewards)
+        next_observations = list_np2list_tensor(next_observations)
+        done = list_np2list_tensor(done)
+        next_actions = list_np2list_tensor(next_actions)
+
+        with torch.no_grad():
+            # Critic Loss
+            q_next = self.target_critic(next_observations, next_actions).detach()
+            target_q = (rewards[self.agent_index] + self.gamma * q_next).detach()
+
+        q = self.critic(observations, actions)
+
+        critic_loss = (target_q - q).pow(2).mean()
+
+        # dot = make_dot(critic_loss)
+        # dot.format = 'png'
+        # dot.render(filename='torchviz-sample')
+
+        # Actor Loss
+        actions[self.agent_index] = self.actor(observations[self.agent_index])
+
+        actor_loss = - self.critic(observations, actions).mean()
+
+        # Update Actor
+        self.actor_optimizer.zero_grad()
+        actor_loss.backward()
+        self.actor_optimizer.step()
+
+        # Update Critic
+        self.critic_optimizer.zero_grad()
+        critic_loss.backward()
+        self.critic_optimizer.step()
+
+        # Soft update target nets
+        soft_update(source_net=self.critic, target_net=self.target_critic, tau=self.tau)
+        soft_update(source_net=self.actor, target_net=self.target_actor, tau=self.tau)

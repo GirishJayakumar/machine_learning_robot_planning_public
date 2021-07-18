@@ -16,22 +16,18 @@ class ReplayBuffer(object):
         self.n_agents = None
         self.obs_dims = None
         self.action_dims = None
-
         self.buffer = []
+
+    def __len__(self):
+        return len(self.buffer)
 
     def initialize_from_config(self, config_data, section_name):
         self.max_size = config_data.getint(section_name, 'buffer_size')
 
     def initialize_from_env(self, env: Environment):
         self.n_agents = len(env.agent_list)
-        self.obs_dims = [env.agent_list[i].dynamics.get_obs_dim()[0] for i in range(self.n_agents)]
-        self.obs_dims = [env.agent_list[i].dynamics.get_action_dim()[0] for i in range(self.n_agents)]
-
-    def __len__(self):
-        return len(self.buffer)
-
-    def _n_array(self, n_agent, batch_size: int, dim):
-        return [np.zeros((batch_size, dim[i])) for i in range(n_agent)]
+        self.obs_dims = [env.agent_list[i].observer.get_obs_dim()[0] for i in range(self.n_agents)]
+        self.action_dims = [env.agent_list[i].dynamics.get_action_dim()[0] for i in range(self.n_agents)]
 
     def push(self, observations, actions, rewards, next_observations, done):
         done_mask = [1 if done[i] else 0 for i in range(self.n_agents)]
@@ -42,7 +38,6 @@ class ReplayBuffer(object):
             del self.buffer[0:int(len(self.buffer) / 10)]
 
     def sample(self, batch_size: int):
-        # indices = np.random.choice(len(self.buffer), size=batch_size, replace=False)
         indices = np.random.randint(0, len(self.buffer), batch_size)
 
         n = self.n_agents
@@ -60,13 +55,7 @@ class ReplayBuffer(object):
                 next_observations[agent_index][i, :] = self.buffer[index][3][agent_index]
                 done[agent_index][i, :] = self.buffer[index][4][agent_index]
 
-        # observations = [torch.tensor(observations[i], dtype=torch.float32, requires_grad=False) for i in
-        #                 range(len(observations))]
-        # actions = [torch.tensor(actions[i], dtype=torch.float32, requires_grad=False) for i in range(len(actions))]
-        # rewards = [torch.tensor(rewards[i], dtype=torch.float32, requires_grad=False) for i in range(len(rewards))]
-        # next_observations = [torch.tensor(next_observations[i], dtype=torch.float32, requires_grad=False) for i in
-        #                      range(len(next_observations))]
-        # done = [torch.tensor(done[i], dtype=torch.float32, requires_grad=False) for i in
-        #         range(len(done))]
-
         return observations, actions, rewards, next_observations, done
+
+    def _n_array(self, n_agent, batch_size: int, dim):
+        return [np.zeros((batch_size, dim[i])) for i in range(n_agent)]

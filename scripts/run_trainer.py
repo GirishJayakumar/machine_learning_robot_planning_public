@@ -13,6 +13,8 @@ def main():
     trainer = Trainer()
     trainer.initialize_from_config(config_data=config_data, section_name='trainer')
 
+    print('done!')
+
 
 if __name__ == '__main__':
     main()

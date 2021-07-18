@@ -31,12 +31,13 @@ class Trainer(object):
         self.agents = self._init_agents(config_data)
 
     def _init_agents(self, config_data):
-        self.agents = []
+        agents = []
         for agent_name in self.agent_names:
             rl_agent = factory_from_config(rl_agent_factory_base, config_data, agent_name)
             rl_agent.initialize_from_env(self.env)
             rl_agent.initialize_networks()
-            self.agents.append(rl_agent)
+            agents.append(rl_agent)
+        return agents
 
     def _init_env(self, config_data, section_name):
         self.env_name = config_data.get(section_name, 'environment_name')

@@ -11,6 +11,7 @@ class MADDPG_Agent(BaseAgent):
         super(MADDPG_Agent).__init__()
 
     def initialize_from_env(self, env: Environment):
+        self.replay_buffer.initialize_from_env(env)
         self.max_action = env.agent_list[self.agent_index].dynamics.get_max_action()
         self.action_dim = env.agent_list[self.agent_index].dynamics.get_action_dim()[0]
         self.obs_dim = env.agent_list[self.agent_index].observer.get_obs_dim()[0]
@@ -47,6 +48,6 @@ class MADDPG_Agent(BaseAgent):
         actor_input = full_state[self.agent_index]
         return actor_input
 
-    def _generate_critic_input(self, full_state):
-        critic_input = full_state
+    def _generate_critic_input(self, full_obs):
+        critic_input = full_obs
         return critic_input
