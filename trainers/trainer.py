@@ -30,7 +30,6 @@ class Trainer(object):
         self.agent_names = list(ast.literal_eval(config_data.get(section_name, 'agent_names')))
         self.agents = self._init_agents(config_data)
 
-
     def _init_agents(self, config_data):
         self.agents = []
         for agent_name in self.agent_names:
@@ -38,7 +37,6 @@ class Trainer(object):
             rl_agent.initialize_from_env(self.env)
             rl_agent.initialize_networks()
             self.agents.append(rl_agent)
-
 
     def _init_env(self, config_data, section_name):
         self.env_name = config_data.get(section_name, 'environment_name')

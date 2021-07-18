@@ -4,7 +4,6 @@ from robot_planning.environment.environment import Environment
 
 class Observer(object):
     def __init__(self, agent_index=None, agent_list=None):
-        self.obs_dim = None
         self.agent_index = agent_index
         self.agent_list = agent_list
 
@@ -30,7 +29,7 @@ class FullStateObserver(Observer):
 
     def get_obs_dim(self):
         obs_dim = sum([self.agent_list[_].dynamics.get_state_dim()[0] for _ in range(len(self.agent_list))])
-        return obs_dim
+        return (obs_dim,)
 
 
 class LocalStateObserver(Observer):
@@ -40,4 +39,4 @@ class LocalStateObserver(Observer):
 
     def get_obs_dim(self):
         obs_dim = self.agent_list[self.agent_index].dynamics.get_state_dim()[0]
-        return obs_dim
+        return (obs_dim,)

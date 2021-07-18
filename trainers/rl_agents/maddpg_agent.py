@@ -13,8 +13,8 @@ class MADDPG_Agent(BaseAgent):
     def initialize_from_env(self, env: Environment):
         self.max_action = env.agent_list[self.agent_index].dynamics.get_max_action()
         self.action_dim = env.agent_list[self.agent_index].dynamics.get_action_dim()[0]
-        self.obs_dim = env.agent_list[self.agent_index].dynamics.get_state_dim()[0]
-        self.critic_in_dim = sum([env.get_all_state_dims()[_][0] for _ in range(len(env.get_all_state_dims()))])
+        self.obs_dim = env.agent_list[self.agent_index].observer.get_obs_dim()[0]
+        self.critic_in_dim = sum([env.get_all_obs_dims()[_][0] for _ in range(len(env.get_all_state_dims()))])
         self.actor_in_dim = self.obs_dim
 
     def initialize_networks(self):
