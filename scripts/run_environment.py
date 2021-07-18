@@ -14,10 +14,14 @@ def main():
     environment.initialize_from_config(config_data, 'environment')
 
     actions = np.asarray([[0, 1], [0, -1]]).T
-    for i in range(100):
+    for i in range(2):
         states, observations, costs = environment.step(actions)
-        print(states, "    ", observations, "    ", costs)
+        print("t={}".format(i))
+        print("states:   ", states)
+        print("observations:   ", observations)
+        print("costs:   ", costs)
 
 
 if __name__ == '__main__':
     main()
+    print('done!')

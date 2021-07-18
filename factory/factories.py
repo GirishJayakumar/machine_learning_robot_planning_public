@@ -72,5 +72,8 @@ def observer_base(base_type):
     if base_type == 'full_observation':
         from robot_planning.environment.observer import FullStateObserver
         return FullStateObserver()
+    if base_type == 'local_state_observation':
+        from robot_planning.environment.observer import LocalStateObserver
+        return LocalStateObserver()
     else:
         raise ValueError('observer type {} is not recognized'.format(base_type))

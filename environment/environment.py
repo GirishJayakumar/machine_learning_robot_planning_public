@@ -22,9 +22,7 @@ class Environment(object):
             agent = factory_from_config(robot_factory_base, config_data, agent_section_name)
             self.agent_list.append(agent)
         for i in range(len(self.agent_list)):
-            # initialize observation dimension
-            self.agent_list[i].observer.initialize_from_env(self)
-
+            self.agent_list[i].observer.set_agent_list(agent_list=self.agent_list, agent_index=i)
             other_agents_list = copy.copy(self.agent_list)
             other_agents_list.pop(i)
             self.agent_list[i].cost_evaluator.collision_checker.set_other_agents_list(other_agents_list)
@@ -43,7 +41,7 @@ class Environment(object):
         for i in range(len(self.agent_list)):
             cost = self.agent_list[i].evaluate_state_action_pair_cost(states[i], actions[:, i])
             costs[i] = cost
-            observation_next = self.agent_list[i].observer.generate_observation(states)
+            observation_next = self.agent_list[i].observer.observe()
             observations.append(observation_next)
 
         return states, observations, costs
@@ -56,7 +54,6 @@ class Environment(object):
             costs_sum += costs
         return states, observations, costs_sum
 
-
     def get_all_state_dims(self):
         all_state_dims = [agent.dynamics.get_state_dim() for agent in self.agent_list]
         return all_state_dims
@@ -68,4 +65,3 @@ class Environment(object):
     def get_all_obs_dims(self):
         all_obs_dims = [agent.observer.get_obs_dim() for agent in self.agent_list]
         return all_obs_dims
-
