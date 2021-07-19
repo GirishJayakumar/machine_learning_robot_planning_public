@@ -32,7 +32,7 @@ class BaseAgent:
         self.actor_optimizer = None
         self.critic_optimizer = None
 
-        self.replay_buffer = ReplayBuffer()
+        self.replay_buffer = None
 
     def initialize_from_config(self, config_data, section_name):
         self.agent_index = config_data.getint(section_name, 'index')
@@ -43,6 +43,7 @@ class BaseAgent:
         self.critic_lr = config_data.getfloat(section_name, 'critic_lr')
         self.tau = config_data.getfloat(section_name, 'tau')
         self.gamma = config_data.getfloat(section_name, 'gamma')
+        self.replay_buffer = ReplayBuffer()
         self.replay_buffer.initialize_from_config(config_data, section_name)
 
     def initialize_from_env(self, env: Environment):

@@ -12,6 +12,10 @@ def main():
     config_data.read(config_path)
     trainer = Trainer()
     trainer.initialize_from_config(config_data=config_data, section_name='trainer')
+    print('trainer initialized!')
+
+    trainer.train()
+
 
     print('done!')
 

@@ -34,7 +34,7 @@ class ActorNet(BaseNetwork):
         super(ActorNet, self).__init__(network_name="Agent{}".format(agent_index) + "_ActorNet", input_dim=input_dim,
                                        output_dim=output_dim, hidden_dims=hidden_dims, nonlin=nonlin)
 
-        self.max_action = max_action
+        self.max_action = torch.tensor(max_action)
 
     def forward(self, obs, actions=None):
         output = self.network(obs)

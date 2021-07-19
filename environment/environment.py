@@ -54,7 +54,7 @@ class Environment(object):
             costs_sum += costs
         return states, observations, costs_sum
 
-    def rest(self):
+    def reset(self):
         states = []
         observations = []
         costs = []
