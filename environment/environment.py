@@ -54,6 +54,20 @@ class Environment(object):
             costs_sum += costs
         return states, observations, costs_sum
 
+    def rest(self):
+        states = []
+        observations = []
+        costs = []
+        for i in range(len(self.agent_list)):
+            self.agent_list[i].reset_state(option='initial_state')
+            state = self.agent_list[i].get_state()
+            states.append(state)
+            costs.append(None)
+        for i in range(len(self.agent_list)):
+            observation = self.agent_list[i].observer.observe()
+            observations.append(observation)
+        return states, observations, costs
+
     def get_all_state_dims(self):
         all_state_dims = [agent.dynamics.get_state_dim() for agent in self.agent_list]
         return all_state_dims

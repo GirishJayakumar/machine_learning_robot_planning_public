@@ -4,6 +4,7 @@ from robot_planning.factory.factories import cost_evaluator_factory_base
 from robot_planning.factory.factories import observer_base
 import numpy as np
 import copy
+from copy import deepcopy
 import ast
 
 class Robot(object):
@@ -33,6 +34,7 @@ class SimulatedRobot(Robot):
     def __init__(self, dynamics=None, start_state=None, steps_per_action=None, data_type=None, cost_evaluator=None):
         Robot.__init__(self)
         self.dynamics = dynamics
+        self.start_state = start_state
         self.state = start_state
         self.cost_evaluator = cost_evaluator
         self.data_type = data_type
@@ -44,6 +46,7 @@ class SimulatedRobot(Robot):
         dynamics_section_name = config_data.get(section_name, 'dynamics')
         self.dynamics = factory_from_config(dynamics_factory_base, config_data, dynamics_section_name)
         self.state = np.asarray(ast.literal_eval(config_data.get(section_name, 'start_state')))
+        self.start_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'start_state')))
         cost_evaluator_section_name = config_data.get(section_name, 'cost_evaluator')
         self.cost_evaluator = factory_from_config(cost_evaluator_factory_base, config_data, cost_evaluator_section_name)
         self.data_type = config_data.get(section_name, 'data_type')
@@ -84,6 +87,13 @@ class SimulatedRobot(Robot):
 
     def reset_time(self):
         self.steps = 0
+
+    def reset_state(self, option='initial_state'):
+        if option == 'initial_state':
+            self.state = deepcopy(self.start_state)
+        elif option == 'random':
+            # TODO: implement randomly reset initial state. Needs to avoid obstacles.
+            pass
 
     def set_cost_evaluator(self, cost_evaluator):
         self.cost_evaluator = cost_evaluator
