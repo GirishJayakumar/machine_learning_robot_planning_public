@@ -36,10 +36,10 @@ class Environment(object):
         observations = []
         costs = np.zeros(len(self.agent_list))
         for i in range(len(self.agent_list)):
-            state_next = self.agent_list[i].propagate_robot(actions[:, i])
+            state_next = self.agent_list[i].propagate_robot(actions[i])
             states.append(state_next)
         for i in range(len(self.agent_list)):
-            cost = self.agent_list[i].evaluate_state_action_pair_cost(states[i], actions[:, i])
+            cost = self.agent_list[i].evaluate_state_action_pair_cost(states[i], actions[i])
             costs[i] = cost
             observation_next = self.agent_list[i].observer.observe()
             observations.append(observation_next)
