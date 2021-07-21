@@ -34,6 +34,8 @@ class BaseAgent:
 
         self.replay_buffer = None
 
+        self.agent_list = None
+
     def initialize_from_config(self, config_data, section_name):
         self.agent_index = config_data.getint(section_name, 'index')
         self.framework = config_data.get(section_name, 'type')
@@ -48,6 +50,9 @@ class BaseAgent:
 
     def initialize_from_env(self, env: Environment):
         raise NotImplementedError
+
+    def set_agent_list(self, agent_list):
+        pass
 
     def initialize_networks(self):
         raise NotImplementedError
@@ -70,6 +75,10 @@ class BaseAgent:
             action += noise
 
         return action.copy()
+
+    def train_agent(self):
+        raise NotImplementedError
+
 
     def train_AC(self, transitions, next_actions):
         observations, actions, rewards, next_observations, done = transitions

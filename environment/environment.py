@@ -13,6 +13,7 @@ class Environment(object):
     def __init__(self, agent_list=None, steps_per_action=None):
         self.agent_list = agent_list
         self.steps_per_action = steps_per_action
+        self.n_agents = None
 
     def initialize_from_config(self, config_data, section_name):
         # self.num_robots = config_data.getint(section_name, 'num_robots')
@@ -30,6 +31,7 @@ class Environment(object):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
         else:
             self.steps_per_action = 1
+        self.n_agents = len(self.agent_list)
 
     def single_step(self, actions):
         states = []

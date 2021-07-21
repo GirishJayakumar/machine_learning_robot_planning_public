@@ -13,6 +13,7 @@ class ReplayBuffer(object):
         '''
 
         self.max_size = None
+        self.batch_size = None
         self.n_agents = None
         self.obs_dims = None
         self.action_dims = None
@@ -21,23 +22,36 @@ class ReplayBuffer(object):
     def __len__(self):
         return len(self.buffer)
 
+    def ready(self):
+        if len(self.buffer) >= self.batch_size:
+            return True
+        else:
+            return False
+
     def initialize_from_config(self, config_data, section_name):
         self.max_size = config_data.getint(section_name, 'buffer_size')
+        self.batch_size = config_data.getint(section_name, 'batch_size')
 
     def initialize_from_env(self, env: Environment):
         self.n_agents = len(env.agent_list)
         self.obs_dims = [env.agent_list[i].observer.get_obs_dim()[0] for i in range(self.n_agents)]
         self.action_dims = [env.agent_list[i].dynamics.get_action_dim()[0] for i in range(self.n_agents)]
 
-    def push(self, observations, actions, rewards, next_observations, done):
-        done_mask = [1 if done[i] else 0 for i in range(self.n_agents)]
+    def push(self, observations, actions, rewards, next_observations, done=None):
+        done_mask = [0 for i in range(self.n_agents)]
+        if done is not None:
+            done_mask = [1 if done[i] else 0 for i in range(self.n_agents)]
         transition = [observations, actions, rewards, next_observations, done_mask]
         self.buffer.append(transition)
 
         if len(self.buffer) > self.max_size:
             del self.buffer[0:int(len(self.buffer) / 10)]
 
-    def sample(self, batch_size: int):
+    def sample(self, batch_size=None):
+
+        if batch_size is None:
+            batch_size = self.batch_size
+
         indices = np.random.randint(0, len(self.buffer), batch_size)
 
         n = self.n_agents
