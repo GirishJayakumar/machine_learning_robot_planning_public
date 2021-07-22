@@ -36,7 +36,15 @@ class PointCollisionChecker(CollisionChecker):
             self.obstacles = np.asarray(ast.literal_eval(config_data.get(section_name, 'obstacles')))
         if config_data.has_option(section_name, 'obstacles_radius'):
             self.obstacles_radius = np.asarray(ast.literal_eval(config_data.get(section_name, 'obstacles_radius')))
+        if len(self.obstacles) is not len(self.obstacles_radius):
+            raise ValueError('the numbers of obstacles and radii do not match')
         self.other_agents_list = None
+
+    def get_obstacle_list(self):
+        obstacle_list = []
+        for i in range(len(self.obstacles)):
+            obstacle_list.append((self.obstacles[i][0], self.obstacles[i][1], self.obstacles_radius[i]))
+        return obstacle_list
 
     def check(self, state_cur):  # True for collision, False for no collision
         for i in range(len(self.obstacles)):

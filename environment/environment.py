@@ -42,9 +42,12 @@ class Environment(object):
         return states, costs
 
     def step(self, actions):
+        states = None
         costs_sum = np.zeros(len(self.agent_list))
         for i in range(self.steps_per_action):
             states, costs = self.single_step(actions)
             costs_sum += costs
+        if states is None:
+            raise ValueError('States are None')
         return states, costs_sum
 
