@@ -90,8 +90,7 @@ class Trainer(object):
             noise_rate = max(0.05, noise_rate - 5e-7)
             epsilon = max(0.05, epsilon - 5e-7)
 
-
-    def evaluate(self):
+    def evaluate(self, initial_state=None, visualize=False):
         # TODO: implement evaluate
         pass
 
@@ -129,7 +128,6 @@ class Trainer(object):
     def _replay_buffer_push(self, observations, actions, rewards, next_observations):
         for agent in self.agents:
             agent.replay_buffer.push(observations, actions, rewards, next_observations)
-
 
     def _init_data_path(self):
         model_dir = Path(DATA_ROOT_DIR) / self.env_name

@@ -45,7 +45,7 @@ class Environment(object):
             costs[i] = cost
             observation_next = self.agent_list[i].observer.observe()
             observations.append(observation_next)
-
+        # TODO: implement rl_reward
         return states, observations, costs
 
     def step(self, actions):
