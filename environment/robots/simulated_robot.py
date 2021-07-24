@@ -1,10 +1,11 @@
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import dynamics_factory_base
 from robot_planning.factory.factories import cost_evaluator_factory_base
+from robot_planning.factory.factories import observer_factory_base
 import numpy as np
 import copy
+from copy import deepcopy
 import ast
-
 
 class Robot(object):
     def __init__(self):
@@ -33,6 +34,7 @@ class SimulatedRobot(Robot):
     def __init__(self, dynamics=None, start_state=None, steps_per_action=None, data_type=None, cost_evaluator=None):
         Robot.__init__(self)
         self.dynamics = dynamics
+        self.start_state = start_state
         self.state = start_state
         self.cost_evaluator = cost_evaluator
         self.data_type = data_type
@@ -44,6 +46,7 @@ class SimulatedRobot(Robot):
         dynamics_section_name = config_data.get(section_name, 'dynamics')
         self.dynamics = factory_from_config(dynamics_factory_base, config_data, dynamics_section_name)
         self.state = np.asarray(ast.literal_eval(config_data.get(section_name, 'start_state')))
+        self.start_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'start_state')))
         cost_evaluator_section_name = config_data.get(section_name, 'cost_evaluator')
         self.cost_evaluator = factory_from_config(cost_evaluator_factory_base, config_data, cost_evaluator_section_name)
         self.data_type = config_data.get(section_name, 'data_type')
@@ -51,6 +54,8 @@ class SimulatedRobot(Robot):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
         else:
             self.steps_per_action = 1
+        observer_section_name = config_data.get(section_name, 'observer')
+        self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
 
     def get_state(self):
         return copy.copy(self.state)
@@ -64,6 +69,9 @@ class SimulatedRobot(Robot):
     def get_action_dim(self):
         return self.dynamics.get_action_dim()
 
+    def get_obs_dim(self):
+        return self.observer.get_obs_dim()
+
     def get_model_base_type(self):
         return self.dynamics.base_type
 
@@ -76,6 +84,16 @@ class SimulatedRobot(Robot):
 
     def set_time(self, time):
         self.steps = time/self.dynamics.get_delta_t()
+
+    def reset_time(self):
+        self.steps = 0
+
+    def reset_state(self, option='initial_state'):
+        if option == 'initial_state':
+            self.state = deepcopy(self.start_state)
+        elif option == 'random':
+            # TODO: implement randomly reset initial state. Needs to avoid obstacles.
+            pass
 
     def reset_time(self):
         self.steps = 0
@@ -120,3 +138,4 @@ class SimulatedRobot(Robot):
     @property
     def delta_t(self):
         return self.dynamics.get_delta_t()
+
