@@ -68,11 +68,11 @@ def rl_agent_factory_base(base_type):
         raise ValueError('agent type {} is not recognized'.format(base_type))
 
 
-def observer_base(base_type):
-    if base_type == 'full_observation':
+def observer_factory_base(base_type):
+    if base_type == 'full_state_observer':
         from robot_planning.environment.observer import FullStateObserver
         return FullStateObserver()
-    if base_type == 'local_state_observation':
+    if base_type == 'local_state_observer':
         from robot_planning.environment.observer import LocalStateObserver
         return LocalStateObserver()
     else:

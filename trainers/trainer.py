@@ -149,7 +149,7 @@ class Trainer(object):
     def _init_env(self, config_data, section_name):
         self.env_name = config_data.get(section_name, 'environment_name')
 
-        env_config_path = "configs/envs/{}_environment.cfg".format(self.env_name)
+        env_config_path = "configs/envs/{}.cfg".format(self.env_name)
         env_config_data = ConfigParser.ConfigParser()
         env_config_data.read(env_config_path)
 

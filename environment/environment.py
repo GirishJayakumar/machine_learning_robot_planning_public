@@ -62,6 +62,7 @@ class Environment(object):
         costs = []
         for i in range(len(self.agent_list)):
             self.agent_list[i].reset_state(option='initial_state')
+            self.agent_list[i].reset_time()
             state = self.agent_list[i].get_state()
             states.append(state)
             costs.append(None)

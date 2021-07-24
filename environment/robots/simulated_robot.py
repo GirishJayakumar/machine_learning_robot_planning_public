@@ -1,7 +1,7 @@
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import dynamics_factory_base
 from robot_planning.factory.factories import cost_evaluator_factory_base
-from robot_planning.factory.factories import observer_base
+from robot_planning.factory.factories import observer_factory_base
 import numpy as np
 import copy
 from copy import deepcopy
@@ -55,7 +55,7 @@ class SimulatedRobot(Robot):
         else:
             self.steps_per_action = 1
         observer_section_name = config_data.get(section_name, 'observer')
-        self.observer = factory_from_config(observer_base, config_data, observer_section_name)
+        self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
 
     def get_state(self):
         return copy.copy(self.state)
@@ -94,6 +94,9 @@ class SimulatedRobot(Robot):
         elif option == 'random':
             # TODO: implement randomly reset initial state. Needs to avoid obstacles.
             pass
+
+    def reset_time(self):
+        self.steps = 0
 
     def set_cost_evaluator(self, cost_evaluator):
         self.cost_evaluator = cost_evaluator
