@@ -45,16 +45,18 @@ class Environment(object):
             costs[i] = cost
             observation_next = self.agent_list[i].observer.observe()
             observations.append(observation_next)
-        # TODO: implement rl_reward
-        return states, observations, costs
+        rl_rewards = - costs
+        return states, observations, costs, rl_rewards
 
     def step(self, actions):
         costs_sum = np.zeros(len(self.agent_list))
+        rl_rewards_sum = np.zeros(len(self.agent_list))
         states, observations = None, None
         for i in range(self.steps_per_action):
-            states, observations, costs = self.single_step(actions)
+            states, observations, costs, rl_rewards = self.single_step(actions)
             costs_sum += costs
-        return states, observations, costs_sum
+            rl_rewards_sum += rl_rewards
+        return states, observations, costs_sum, rl_rewards_sum
 
     def reset(self):
         states = []

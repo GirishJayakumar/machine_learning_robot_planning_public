@@ -73,7 +73,7 @@ class Trainer(object):
                 # generate action based on observations
                 actions = self.step(obs_torch, noise_rate=noise_rate, epsilon=epsilon)
                 # step environment
-                _, next_observations, rewards = self.env.step(actions)
+                _, next_observations, _, rewards = self.env.step(actions)
 
                 # push into replay buffer
                 self._replay_buffer_push(observations, actions, rewards, next_observations)
