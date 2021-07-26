@@ -13,6 +13,7 @@ class Environment(object):
     def __init__(self, agent_list=None, steps_per_action=None):
         self.agent_list = agent_list
         self.steps_per_action = steps_per_action
+        self.n_agents = None
 
     def initialize_from_config(self, config_data, section_name):
         # self.num_robots = config_data.getint(section_name, 'num_robots')
@@ -22,6 +23,7 @@ class Environment(object):
             agent = factory_from_config(robot_factory_base, config_data, agent_section_name)
             self.agent_list.append(agent)
         for i in range(len(self.agent_list)):
+            self.agent_list[i].observer.set_agent_list(agent_list=self.agent_list, agent_index=i)
             other_agents_list = copy.copy(self.agent_list)
             other_agents_list.pop(i)
             self.agent_list[i].cost_evaluator.collision_checker.set_other_agents_list(other_agents_list)
@@ -29,25 +31,58 @@ class Environment(object):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
         else:
             self.steps_per_action = 1
+        self.n_agents = len(self.agent_list)
 
     def single_step(self, actions):
         states = []
+        observations = []
         costs = np.zeros(len(self.agent_list))
         for i in range(len(self.agent_list)):
-            state_next = self.agent_list[i].propagate_robot(actions[:, i])
+            state_next = self.agent_list[i].propagate_robot(actions[i])
             states.append(state_next)
         for i in range(len(self.agent_list)):
-            cost = self.agent_list[i].evaluate_state_action_pair_cost(states[i], actions[:, i])
+            cost = self.agent_list[i].evaluate_state_action_pair_cost(states[i], actions[i])
             costs[i] = cost
-        return states, costs
+            observation_next = self.agent_list[i].observer.observe()
+            observations.append(observation_next)
+        # TODO: implement rl_reward
+        return states, observations, costs
 
     def step(self, actions):
-        states = None
         costs_sum = np.zeros(len(self.agent_list))
+        states, observations = None, None
         for i in range(self.steps_per_action):
-            states, costs = self.single_step(actions)
+            states, observations, costs = self.single_step(actions)
             costs_sum += costs
         if states is None:
             raise ValueError('States are None')
-        return states, costs_sum
+        if observations is None:
+            raise ValueError('observations are None')
+        return states, observations, costs_sum
 
+    def reset(self):
+        states = []
+        observations = []
+        costs = []
+        for i in range(len(self.agent_list)):
+            self.agent_list[i].reset_state(option='initial_state')
+            self.agent_list[i].reset_time()
+            state = self.agent_list[i].get_state()
+            states.append(state)
+            costs.append(None)
+        for i in range(len(self.agent_list)):
+            observation = self.agent_list[i].observer.observe()
+            observations.append(observation)
+        return states, observations, costs
+
+    def get_all_state_dims(self):
+        all_state_dims = [agent.dynamics.get_state_dim() for agent in self.agent_list]
+        return all_state_dims
+
+    def get_all_action_dims(self):
+        all_action_dims = [agent.dynamics.get_action_dim() for agent in self.agent_list]
+        return all_action_dims
+
+    def get_all_obs_dims(self):
+        all_obs_dims = [agent.observer.get_obs_dim() for agent in self.agent_list]
+        return all_obs_dims

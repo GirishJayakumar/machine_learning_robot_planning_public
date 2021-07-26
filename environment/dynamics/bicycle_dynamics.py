@@ -59,3 +59,6 @@ class BicycleDynamics(NumpySimulatedDynamics):
 
     def get_action_dim(self):
         return (2,)
+
+    def get_max_action(self):
+        return np.array([1,1])

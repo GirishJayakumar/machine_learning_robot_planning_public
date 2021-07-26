@@ -82,3 +82,23 @@ def noise_sampler_factory_base(base_type):
         return GaussianNoiseSampler()
     else:
         raise ValueError('noise_sampler type {} is not recognized'.format(base_type))
+
+
+def rl_agent_factory_base(base_type):
+    if base_type == 'maddpg':
+        from robot_planning.trainers.rl_agents.maddpg_agent import MADDPG_Agent
+        return MADDPG_Agent()
+    else:
+        raise ValueError('agent type {} is not recognized'.format(base_type))
+
+
+def observer_factory_base(base_type):
+    if base_type == 'full_state_observer':
+        from robot_planning.environment.observer import FullStateObserver
+        return FullStateObserver()
+    if base_type == 'local_state_observer':
+        from robot_planning.environment.observer import LocalStateObserver
+        return LocalStateObserver()
+    else:
+        raise ValueError('observer type {} is not recognized'.format(base_type))
+

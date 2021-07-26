@@ -27,6 +27,9 @@ class SimulatedDynamics(object):
     def get_action_dim(self):
         raise NotImplementedError
 
+    def get_max_action(self):
+        raise NotImplementedError
+
 
 class NumpySimulatedDynamics(SimulatedDynamics):
     def __init__(self, dynamics_type=None, data_type=None, delta_t=None):
@@ -36,13 +39,6 @@ class NumpySimulatedDynamics(SimulatedDynamics):
     def initialize_from_config(self, config_data, section_name):
         SimulatedDynamics.initialize_from_config(self, config_data, section_name)
 
-    def get_state_dim(self):
-        raise NotImplementedError
-
-    def get_action_dim(self):
-        raise NotImplementedError
-
     def propagate(self, state, action, delta_t=None):
         raise NotImplementedError
-
 
