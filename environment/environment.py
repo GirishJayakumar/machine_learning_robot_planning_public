@@ -54,6 +54,10 @@ class Environment(object):
         for i in range(self.steps_per_action):
             states, observations, costs = self.single_step(actions)
             costs_sum += costs
+        if states is None:
+            raise ValueError('States are None')
+        if observations is None:
+            raise ValueError('observations are None')
         return states, observations, costs_sum
 
     def reset(self):

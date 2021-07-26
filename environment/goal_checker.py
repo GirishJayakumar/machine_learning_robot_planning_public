@@ -1,5 +1,6 @@
 import numpy as np
 import ast
+import copy
 
 
 class GoalChecker(object):
@@ -24,6 +25,9 @@ class StateSpaceGoalChecker(GoalChecker):
     def initialize_from_config(self, config_data, section_name):
         self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')))
         self.goal_radius = config_data.getfloat(section_name, 'goal_radius')
+
+    def get_goal(self):
+        return (self.goal_state[0], self.goal_state[1], self.goal_radius)
 
     def check(self, state_cur):  # True for goal reached, False for goal not reached
         if np.linalg.norm(self.goal_state - state_cur) < self.goal_radius:
