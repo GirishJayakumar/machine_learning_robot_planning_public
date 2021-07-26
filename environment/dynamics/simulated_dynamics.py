@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class SimulatedDynamics(object):
     def __init__(self, dynamics_type=None, data_type=None, delta_t=None):
         self.dynamics_type = dynamics_type

@@ -57,6 +57,11 @@ class Environment(object):
             costs_sum += costs
             rl_rewards_sum += rl_rewards
         return states, observations, costs_sum, rl_rewards_sum
+        if states is None:
+            raise ValueError('States are None')
+        if observations is None:
+            raise ValueError('observations are None')
+        return states, observations, costs_sum
 
     def reset(self):
         states = []
