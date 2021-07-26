@@ -56,19 +56,23 @@ class Environment(object):
             states, observations, costs, rl_rewards = self.single_step(actions)
             costs_sum += costs
             rl_rewards_sum += rl_rewards
-        return states, observations, costs_sum, rl_rewards_sum
         if states is None:
             raise ValueError('States are None')
         if observations is None:
             raise ValueError('observations are None')
-        return states, observations, costs_sum
+        return states, observations, costs_sum, rl_rewards_sum
 
-    def reset(self):
+    def reset(self, initial_states=None, random=False):
         states = []
         observations = []
         costs = []
         for i in range(len(self.agent_list)):
-            self.agent_list[i].reset_state(option='initial_state')
+            if initial_states is not None:
+                initial_state = initial_states[i]
+            else:
+                initial_state = None
+
+            self.agent_list[i].reset_state(initial_state=initial_state, random=random)
             self.agent_list[i].reset_time()
             state = self.agent_list[i].get_state()
             states.append(state)

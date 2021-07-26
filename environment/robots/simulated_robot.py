@@ -108,15 +108,15 @@ class SimulatedRobot(Robot):
     def reset_time(self):
         self.steps = 0
 
-    def reset_state(self, option='initial_state'):
-        if option == 'initial_state':
-            self.state = deepcopy(self.start_state)
-        elif option == 'random':
-            # TODO: implement randomly reset initial state. Needs to avoid obstacles.
+    def reset_state(self, initial_state, random):
+        if random:
+            # TODO: implement random initialize state
             pass
-
-    def reset_time(self):
-        self.steps = 0
+        else:
+            if initial_state is not None:
+                self.state = initial_state
+            else:
+                self.state = deepcopy(self.start_state)
 
     def set_cost_evaluator(self, cost_evaluator):
         self.cost_evaluator = cost_evaluator
