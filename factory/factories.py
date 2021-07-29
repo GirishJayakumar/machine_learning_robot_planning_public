@@ -29,6 +29,9 @@ def renderer_factory_base(base_type):
     if base_type == 'MPPImatplotlib':
         from robot_planning.environment.renderers import MPPIMatplotlibRenderer
         return MPPIMatplotlibRenderer()
+    elif base_type == 'Envmatplotlib':
+        from robot_planning.environment.renderers import EnvMatplotlibRenderer
+        return EnvMatplotlibRenderer()
     else:
         raise ValueError('Visualizer type {} not recognized'.format(base_type))
 
