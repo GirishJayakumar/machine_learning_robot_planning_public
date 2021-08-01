@@ -7,7 +7,7 @@ import numpy as np
 
 
 def main():
-    config_path = "configs/envs/bicycle_environment.cfg"
+    config_path = "configs/run_environment.cfg"
     config_data = ConfigParser.ConfigParser()
     config_data.read(config_path)
     environment = Environment()

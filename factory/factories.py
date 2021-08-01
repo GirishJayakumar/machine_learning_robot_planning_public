@@ -102,3 +102,10 @@ def observer_factory_base(base_type):
     else:
         raise ValueError('observer type {} is not recognized'.format(base_type))
 
+
+def configs_generator_factory_base(base_type):
+    if base_type == 'MPPI_configs_generator':
+        from robot_planning.batch_experimentation.configs_generator import MPPIConfigsGenerator
+        return MPPIConfigsGenerator()
+    else:
+        raise ValueError('config_generator type {} is not recognized'.format(base_type))
