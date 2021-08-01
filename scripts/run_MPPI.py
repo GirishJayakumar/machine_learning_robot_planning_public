@@ -10,6 +10,7 @@ import numpy as np
 
 
 def main():
+    # config_path = "configs/batch_configs/exp_obs1x2.0_obs1y0.0_obs1r1.5_obs2x6.0_obs2y0.0_obs2r1.5_gamma1.0_alpha0.0_Numtraj100.0.cfg"
     config_path = "configs/run_MPPI.cfg"
     config_data = ConfigParser.ConfigParser()
     config_data.read(config_path)

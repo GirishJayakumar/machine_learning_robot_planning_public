@@ -12,7 +12,7 @@ class StochasticTrajectoriesSampler():
         self.noise_sampler = noise_sampler
 
     def initialize_from_config(self, config_data, section_name):
-        self.number_of_trajectories = config_data.getint(section_name, 'number_of_trajectories')
+        self.number_of_trajectories = int(config_data.getfloat(section_name, 'number_of_trajectories'))
         self.uncontrolled_trajectories_portion = config_data.getfloat(section_name, 'uncontrolled_trajectories_portion')
         noise_sampler_section_name = config_data.get(section_name, 'noise_sampler')
         self.noise_sampler = factory_from_config(noise_sampler_factory_base, config_data, noise_sampler_section_name)
