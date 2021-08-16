@@ -56,14 +56,21 @@ class MatplotlibRenderer(Renderer):
         self._axis = self._figure.add_subplot(1, 1, 1)
         plt.figure(self._figure.number)
 
-    def show(self):
+    def set_range(self):
         if not self.auto_range:
             self._axis.axis([self.xaxis_range[0], self.xaxis_range[1], self.yaxis_range[0],  self.yaxis_range[1]])
         plt.grid(True)
+
+    def show(self):
+        self.set_range()
         plt.pause(0.01)
 
     def clear(self):
         plt.cla()
+
+    def save(self, save_path_name):
+        self.set_range()
+        plt.savefig(save_path_name)
 
 
 class MPPIMatplotlibRenderer(MatplotlibRenderer):
@@ -80,8 +87,8 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
             self._axis.add_artist(circle)
 
     def render_obstacles(self, obstacle_list=None, **kwargs):
-        for (ox, oy, size) in obstacle_list:
-            circle = plt.Circle((ox, oy), size, **kwargs)
+        for (x, y, size) in obstacle_list:
+            circle = plt.Circle((x, y), size, **kwargs)
             self._axis.add_artist(circle)
 
     def render_goal(self, goal=None, **kwargs):

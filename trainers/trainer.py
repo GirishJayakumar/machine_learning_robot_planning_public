@@ -12,6 +12,8 @@ from pathlib import Path
 from robot_planning.data.utils import DATA_ROOT_DIR
 from robot_planning.trainers.utils import list_np2list_tensor, print_table
 from robot_planning.utils import ROOT_DIR
+from robot_planning.utils import DATA_ROOT_DIR
+from robot_planning.trainers.utils import list_np2list_tensor
 
 from copy import deepcopy
 import torch
