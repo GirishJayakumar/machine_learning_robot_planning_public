@@ -34,3 +34,21 @@ class StateSpaceGoalChecker(GoalChecker):
         if np.linalg.norm(self.goal_state - state_cur) < self.goal_radius:
             return True
         return False
+
+class PositionGoalChecker(GoalChecker):
+    def __init__(self, goal=None, kinematics=None):
+        GoalChecker.__init__(self, goal, kinematics)
+
+    def initialize_from_config(self, config_data, section_name):
+        GoalChecker.initialize_from_config(self, config_data, section_name)
+        self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')))
+        self.goal_radius = config_data.getfloat(section_name, 'goal_radius')
+
+    def get_goal(self):
+        return (self.goal_state[0], self.goal_state[1], self.goal_radius)
+
+    def check(self, state_cur):  # True for goal reached, False for goal not reached
+        pos_cur = np.array([state_cur[0], state_cur[1]])
+        if np.linalg.norm(self.goal_state - pos_cur) < self.goal_radius:
+            return True
+        return False

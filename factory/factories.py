@@ -2,6 +2,9 @@ def dynamics_factory_base(base_type):
     if base_type == 'bicycle_dynamics':
         from robot_planning.environment.dynamics.bicycle_dynamics import BicycleDynamics
         return BicycleDynamics()
+    if base_type == 'point_dynamics':
+        from robot_planning.environment.dynamics.point_dynamics import PointDynamics
+        return PointDynamics()
     else:
         raise ValueError('dynamics type {} not recognized'.format(base_type))
 
@@ -10,6 +13,9 @@ def cost_evaluator_factory_base(base_type):
     if base_type == 'quadratic_cost':
         from robot_planning.environment.cost_evaluators import QuadraticCostEvaluator
         return QuadraticCostEvaluator()
+    if base_type == 'terminal_cost':
+        from robot_planning.environment.cost_evaluators import TerminalCostEvaluator
+        return TerminalCostEvaluator()
     else:
         raise ValueError('cost_evaluator type {} not recognized'.format(base_type))
 
@@ -40,6 +46,9 @@ def goal_checker_factory_base(base_type):
     if base_type == 'state_space_goal_checker':
         from robot_planning.environment.goal_checker import StateSpaceGoalChecker
         return StateSpaceGoalChecker()
+    if base_type == 'position_goal_checker':
+        from robot_planning.environment.goal_checker import PositionGoalChecker
+        return PositionGoalChecker()
     else:
         raise ValueError('goal_checker type {} not recognized'.format(base_type))
 

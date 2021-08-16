@@ -7,9 +7,10 @@ from robot_planning.environment.kinematics.simulated_kinematics import BicycleMo
 
 
 class CollisionChecker(object):
-    def __init__(self, obstacles=None, kinematics=None):
+    def __init__(self, obstacles=None, kinematics=None, field_boundary=None):
         self.kinematics = kinematics  # for more complicated collision checkers
         self.obstacles = obstacles
+        self.field_boundary = field_boundary
 
     def initialize_from_config(self, config_data, section_name):
         raise NotImplementedError
@@ -34,6 +35,8 @@ class PointCollisionChecker(CollisionChecker):
         assert isinstance(self.kinematics, PointKinematics), 'The PointCollisionChecker should have PointKinematics'
         if config_data.has_option(section_name, 'obstacles'):
             self.obstacles = np.asarray(ast.literal_eval(config_data.get(section_name, 'obstacles')))
+        if config_data.has_option(section_name, 'field_boundary'):
+            self.field_boundary = np.asarray(ast.literal_eval(config_data.get(section_name, 'field_boundary')))
         if config_data.has_option(section_name, 'obstacles_radius'):
             self.obstacles_radius = np.asarray(ast.literal_eval(config_data.get(section_name, 'obstacles_radius')))
         if len(self.obstacles) is not len(self.obstacles_radius):
@@ -57,6 +60,11 @@ class PointCollisionChecker(CollisionChecker):
                 if np.linalg.norm(agent.state[:2] - state_cur[:2]) < \
                         agent.cost_evaluator.collision_checker.kinematics.get_radius() + self.kinematics.get_radius():
                     return True
+
+        if self.field_boundary is not None:
+            pos_cur = [state_cur[0], state_cur[1]]
+            if abs(pos_cur[0]) > self.field_boundary[0] - 0.5 or abs(pos_cur[1]) > self.field_boundary[1] -0.5:
+                return True
         return False
 
 
