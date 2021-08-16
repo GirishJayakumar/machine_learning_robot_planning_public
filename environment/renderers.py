@@ -21,12 +21,20 @@ class Renderer():
     def render_agents(self):
         pass
 
+    def render_states(self):
+        pass
+
     def render_obstacles(self):
         pass
 
     def render_trajectories(self):
         pass
 
+    def show(self):
+        pass
+
+    def clear(self):
+        pass
 
 class MatplotlibRenderer(Renderer):
     def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
@@ -58,7 +66,7 @@ class MatplotlibRenderer(Renderer):
 
     def set_range(self):
         if not self.auto_range:
-            self._axis.axis([self.xaxis_range[0], self.xaxis_range[1], self.yaxis_range[0],  self.yaxis_range[1]])
+            self._axis.axis([self.xaxis_range[0], self.xaxis_range[1], self.yaxis_range[0], self.yaxis_range[1]])
         plt.grid(True)
 
     def show(self):
@@ -80,9 +88,10 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
     def initialize_from_config(self, config_data, section_name):
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
 
-    def render_states(self, state_list=None, kinematics=None, **kwargs):
+    def render_states(self, state_list=None, kinematics_list=None, **kwargs):
         for i in range(len(state_list)):
             state = state_list[i]
+            kinematics = kinematics_list[i]
             circle = plt.Circle((state[0], state[1]), kinematics.radius, **kwargs)
             self._axis.add_artist(circle)
 
@@ -107,9 +116,28 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
                 previous_state = state
 
 
+class EnvMatplotlibRenderer(MatplotlibRenderer):
+    def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
+        MatplotlibRenderer.__init__(self, xaxis_range, yaxis_range, auto_range, figure_size, figure_dpi)
 
+    def initialize_from_config(self, config_data, section_name):
+        MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
 
+    def render_states(self, state_list=None, kinematics_list=None, **kwargs):
+        for i in range(len(state_list)):
+            state = state_list[i]
+            kinematics = kinematics_list[i]
+            circle = plt.Circle((state[0], state[1]), kinematics.radius, **kwargs)
+            self._axis.add_artist(circle)
 
+    def render_obstacles(self, obstacle_list=None, **kwargs):
+        for (ox, oy, size) in obstacle_list:
+            circle = plt.Circle((ox, oy), size, **kwargs)
+            self._axis.add_artist(circle)
 
-
-
+    def render_goal(self, goal=None, **kwargs):
+        x = goal[0]
+        y = goal[1]
+        radius = goal[2]
+        circle = plt.Circle((x, y), radius, **kwargs)
+        self._axis.add_artist(circle)

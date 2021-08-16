@@ -136,8 +136,9 @@ class Trainer(object):
             _, observations, _ = self.env.reset(initial_states=initial_states, random=random)
             for t in range(eval_episode_length):
                 if visualize:
-                    # TODO: implement renderer here
-                    pass
+                    self.env.render()
+                    self.env.renderer.show()
+                    self.env.renderer.clear()
 
                 # step
                 obs_torch = list_np2list_tensor(observations)

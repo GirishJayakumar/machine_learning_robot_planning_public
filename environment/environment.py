@@ -6,14 +6,15 @@ import ast
 import copy
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import dynamics_factory_base
-from robot_planning.factory.factories import robot_factory_base
+from robot_planning.factory.factories import robot_factory_base, renderer_factory_base
 
 
 class Environment(object):
-    def __init__(self, agent_list=None, steps_per_action=None):
+    def __init__(self, agent_list=None, steps_per_action=None, renderer=None):
         self.agent_list = agent_list
         self.steps_per_action = steps_per_action
         self.n_agents = None
+        self.renderer = renderer
 
     def initialize_from_config(self, config_data, section_name):
         # self.num_robots = config_data.getint(section_name, 'num_robots')
@@ -31,6 +32,11 @@ class Environment(object):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
         else:
             self.steps_per_action = 1
+
+        # renderer
+        renderer_section_name = config_data.get(section_name, 'renderer')
+        self.renderer = factory_from_config(renderer_factory_base, config_data, renderer_section_name)
+
         self.n_agents = len(self.agent_list)
 
     def single_step(self, actions):
@@ -81,6 +87,22 @@ class Environment(object):
             observation = self.agent_list[i].observer.observe()
             observations.append(observation)
         return states, observations, costs
+
+    def render(self):
+        # render robot states
+        self.renderer.render_states(state_list=[agent.get_state() for agent in self.agent_list],
+                                    kinematics_list=[agent.cost_evaluator.collision_checker.kinematics for
+                                                     agent in self.agent_list])
+        # render goal
+        goal_list = [agent.cost_evaluator.goal_checker.get_goal() for agent in self.agent_list]
+        self.renderer.render_goal(goal=goal_list[0], **{'color': "g"})
+        self.renderer.render_goal(goal=goal_list[1], **{'color': "r"})
+
+        # render obstacles
+        obstacle_list = self.agent_list[0].cost_evaluator.collision_checker.get_obstacle_list()
+        self.renderer.render_obstacles(obstacle_list=obstacle_list, **{'color': "k"})
+
+
 
     def get_all_state_dims(self):
         all_state_dims = [agent.dynamics.get_state_dim() for agent in self.agent_list]

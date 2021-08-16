@@ -7,7 +7,7 @@ import numpy as np
 
 
 def main():
-    config_path = "configs/run_environment.cfg"
+    config_path = "configs/environment_configs/bicycle_environment.cfg"
     config_data = ConfigParser.ConfigParser()
     config_data.read(config_path)
     environment = Environment()
@@ -15,12 +15,15 @@ def main():
 
     actions = [np.asarray([0, 1]), np.asarray([0, -1])]
 
-    for i in range(4):
-        states, observations, costs = environment.step(actions)
+    for i in range(50):
+        states, observations, costs, rl_rewards = environment.step(actions)
         print("t={}".format(i))
         print("states:   ", states)
         print("observations:   ", observations)
         print("costs:   ", costs)
+        environment.render()
+        environment.renderer.show()
+        environment.renderer.clear()
 
     environment.reset()
     print('******************')
@@ -28,7 +31,7 @@ def main():
     print('******************')
 
     for i in range(4):
-        states, observations, costs = environment.step(actions)
+        states, observations, costs, rl_rewards = environment.step(actions)
         print("t={}".format(i))
         print("states:   ", states)
         print("observations:   ", observations)

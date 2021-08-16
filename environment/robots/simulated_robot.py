@@ -129,7 +129,7 @@ class SimulatedRobot(Robot):
 
     def render_robot_state(self):
         if self.renderer is not None:
-            self.renderer.render_states(state_list=[self.get_state()], kinematics=self.controller.cost_evaluator.collision_checker.kinematics)
+            self.renderer.render_states(state_list=[self.get_state()], kinematics_list=[self.controller.cost_evaluator.collision_checker.kinematics])
 
     def render_obstacles(self):
         if self.renderer is not None:

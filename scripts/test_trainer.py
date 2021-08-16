@@ -25,7 +25,7 @@ def main():
     evaluator = Trainer()
     evaluator.initialize_from_config(config_data=config_data, section_name='trainer')
     evaluator.load_model(episode=9, training=False)
-    evaluator.evaluate(n_eval_episodes=10, eval_episode_length=30)
+    evaluator.evaluate(n_eval_episodes=10, eval_episode_length=100, visualize=True)
 
 
     print('done!')
