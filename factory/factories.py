@@ -2,6 +2,9 @@ def dynamics_factory_base(base_type):
     if base_type == 'bicycle_dynamics':
         from robot_planning.environment.dynamics.bicycle_dynamics import BicycleDynamics
         return BicycleDynamics()
+    elif base_type == 'autorally_dynamics':
+        from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics import AutoRallyDynamics
+        return AutoRallyDynamics()
     else:
         raise ValueError('dynamics type {} not recognized'.format(base_type))
 
@@ -29,6 +32,9 @@ def renderer_factory_base(base_type):
     if base_type == 'MPPImatplotlib':
         from robot_planning.environment.renderers import MPPIMatplotlibRenderer
         return MPPIMatplotlibRenderer()
+    elif base_type == 'autorally_matplotlib':
+        from robot_planning.environment.renderers import AutorallyMatplotlibRenderer
+        return AutorallyMatplotlibRenderer()
     else:
         raise ValueError('Visualizer type {} not recognized'.format(base_type))
 
@@ -64,6 +70,9 @@ def controller_factory_base(base_type):
     if base_type == 'MPPI':
         from robot_planning.controllers.MPPI.MPPI import MPPI
         return MPPI()
+    elif base_type == 'CSSMPC':
+        from robot_planning.controllers.CSSMPC.CSSMPC import CSSMPC
+        return CSSMPC()
     else:
         raise ValueError('controller type {} is not recognized'.format(base_type))
 

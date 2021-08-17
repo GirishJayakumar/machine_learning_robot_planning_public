@@ -100,9 +100,37 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
                 previous_state = state
 
 
+class AutorallyMatplotlibRenderer(MatplotlibRenderer):
+    def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
+        MatplotlibRenderer.__init__(self, xaxis_range, yaxis_range, auto_range, figure_size, figure_dpi)
 
+    def initialize_from_config(self, config_data, section_name):
+        MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
 
+    def render_states(self, state_list=None, kinematics=None, **kwargs):
+        for i in range(len(state_list)):
+            state = state_list[i]
+            circle = plt.Circle((state[-1], state[-2]), kinematics.radius, **kwargs)
+            self._axis.add_artist(circle)
 
+    def render_obstacles(self, obstacle_list=None, **kwargs):
+        # for (ox, oy, size) in obstacle_list:
+        #     circle = plt.Circle((ox, oy), size, **kwargs)
+        #     self._axis.add_artist(circle)
+        return
 
+    def render_goal(self, goal=None, **kwargs):
+        # x = goal[0]
+        # y = goal[1]
+        # radius = goal[2]
+        # circle = plt.Circle((x, y), radius, **kwargs)
+        # self._axis.add_artist(circle)
+        return
 
-
+    def render_trajectories(self, trajectory_list=None, **kwargs):
+        for trajectory in trajectory_list:
+            previous_state = trajectory[:, 0]
+            for i in range(1, trajectory.shape[1]):
+                state = trajectory[:, i]
+                line, = self._axis.plot([state[-1], previous_state[-1]], [state[-2], previous_state[-2]], **kwargs)
+                previous_state = state

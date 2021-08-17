@@ -185,6 +185,7 @@ class SimulatedRobot(Robot):
         state_next = None
         cost = 0
         action = self.controller.plan(state_cur=self.get_state())
+        print(action)
         self.render_robot_state()
         self.render_goal()
         self.render_obstacles()
