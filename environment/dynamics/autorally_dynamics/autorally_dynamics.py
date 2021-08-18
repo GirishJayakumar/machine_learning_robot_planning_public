@@ -4,6 +4,7 @@ import torch
 from robot_planning.environment.dynamics.simulated_dynamics import NumpySimulatedDynamics
 from robot_planning.environment.dynamics.autorally_dynamics import throttle_model
 from robot_planning.environment.dynamics.autorally_dynamics import map_coords
+from robot_planning.utils import AUTORALLY_DYNAMICS_DIR
 try:
     import ConfigParser
 except ImportError:
@@ -149,11 +150,14 @@ class AutoRallyDynamics(LinearizableDynamics):
         self.kSteering = config_data.getfloat(section_name, 'kSteering')
         self.cSteering = config_data.getfloat(section_name, 'cSteering')
         self.throttle_factor = config_data.getfloat(section_name, 'throttle_factor')
-        throttle_nn_path = config_data.get(section_name, 'throttle_nn_path')
-        if throttle_nn_path:
+        throttle_nn_file_name = config_data.get(section_name, 'throttle_nn_file_name')
+        if throttle_nn_file_name:
+            throttle_nn_file_path = AUTORALLY_DYNAMICS_DIR + "/" + throttle_nn_file_name
             self.throttle_nn = throttle_model.Net()
-            self.throttle_nn.load_state_dict(torch.load(throttle_nn_path))
-        self.track = map_coords.MapCA(config_data.get(section_name, 'track_path'))
+            self.throttle_nn.load_state_dict(torch.load(throttle_nn_file_path))
+        track_file_name = config_data.get(section_name, 'track_file_name')
+        track_path = AUTORALLY_DYNAMICS_DIR + "/" + track_file_name
+        self.track = map_coords.MapCA(track_path)
 
     def propagate(self, state, control, delta_t=None):
         state = state.copy().T
