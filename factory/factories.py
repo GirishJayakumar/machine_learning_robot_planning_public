@@ -118,3 +118,11 @@ def configs_generator_factory_base(base_type):
         return MPPIConfigsGenerator()
     else:
         raise ValueError('config_generator type {} is not recognized'.format(base_type))
+
+
+def logger_factory_base(base_type):
+    if base_type == 'MPPI_logger':
+        from robot_planning.batch_experimentation.loggers import MPPILogger
+        return MPPILogger()
+    else:
+        raise ValueError('logger type {} is not recognized'.format(base_type))

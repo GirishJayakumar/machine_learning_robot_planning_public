@@ -9,7 +9,7 @@ class GoalChecker(object):
         self.goal_state = goal_state
 
     def initialize_from_config(self, config_data, section_name):
-        raise NotImplementedError
+        pass
 
     def set_goal(self, goal_state):
         self.goal_state = goal_state
@@ -23,6 +23,7 @@ class StateSpaceGoalChecker(GoalChecker):
         GoalChecker.__init__(self, goal, kinematics)
 
     def initialize_from_config(self, config_data, section_name):
+        GoalChecker.initialize_from_config(self, config_data, section_name)
         self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')))
         self.goal_radius = config_data.getfloat(section_name, 'goal_radius')
 

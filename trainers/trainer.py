@@ -9,7 +9,7 @@ from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import rl_agent_factory_base
 import os
 from pathlib import Path
-from robot_planning.data.utils import DATA_ROOT_DIR
+from robot_planning.utils import DATA_ROOT_DIR
 from robot_planning.trainers.utils import list_np2list_tensor
 
 from copy import deepcopy

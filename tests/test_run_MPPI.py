@@ -32,3 +32,6 @@ class TestRunMPPI(unittest.TestCase):
             renderer1.clear()
             print(state_next, "    ", cost)
 
+
+if __name__ == '__main__':
+    unittest.main()
