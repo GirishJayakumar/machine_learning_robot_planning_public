@@ -1,6 +1,6 @@
 from robot_planning.controllers.controller import MpcController
 from robot_planning.factory.factory_from_config import factory_from_config
-from robot_planning.factory.factories import stochastic_trajectories_sampler_factory_base
+from robot_planning.factory.factories import dynamics_factory_base
 from robot_planning.controllers.CSSMPC import cs_solver
 import ast
 import numpy as np
@@ -28,21 +28,22 @@ class CSSMPC(MpcController):
 
     def initialize_from_config(self, config_data, section_name):
         MpcController.initialize_from_config(self, config_data, section_name)
-        if config_data.has_option(section_name, 'initial_control_sequence'):
-            self.initial_control_sequence = np.asarray(ast.literal_eval(config_data.get(section_name, 'initial_control_sequence')), dtype=np.float64).reshape((self.get_control_dim(), self.get_control_horizon()))
-            if not (self.initial_control_sequence.shape[0] is self.get_control_dim() and self.initial_control_sequence.shape[1] is self.get_control_horizon()):
-                raise ValueError('The initial control sequence does not match control dimensions and control horizon')
-        else:
-            self.initial_control_sequence = np.zeros((self.get_control_dim(), self.get_control_horizon()))
+        dynamics_section_name = config_data.get(section_name, 'dynamics')
+        self.dynamics = factory_from_config(dynamics_factory_base, config_data, dynamics_section_name)
         self.N = self.get_control_horizon()
         self.n = self.dynamics.get_state_dim()[0]
         self.m = self.get_control_dim()
         self.l = self.n
         self.dt = self.dynamics.get_delta_t()
+        init_ctrl_seq = np.asarray(ast.literal_eval(config_data.get(section_name, 'initial_control_sequence')), dtype=np.float64)
+        if init_ctrl_seq.shape[0] == self.N * self.m:
+            self.initial_control_sequence = init_ctrl_seq.reshape((self.get_control_dim(), self.get_control_horizon()))
+        else:
+            self.initial_control_sequence = np.tile(init_ctrl_seq.reshape((-1, 1)), (1, self.N))
         self.target_speed = float(config_data.get(section_name, 'speed'))
         self.x_target = np.zeros((self.n, self.N))
         self.x_target[0, :] = self.target_speed
-        self.x_target[0, -1] = 2
+        # self.x_target[0, -1] = 2
         self.u_range = np.asarray(ast.literal_eval((config_data.get(section_name, 'ctrl_range'))))
         self.slew_rate = np.asarray(ast.literal_eval((config_data.get(section_name, 'ctrl_slew_rate'))))
         self.prob_lvl = float(config_data.get(section_name, 'prob_lvl'))
@@ -53,7 +54,7 @@ class CSSMPC(MpcController):
         QN = np.asarray(ast.literal_eval((config_data.get(section_name, 'QN'))))
         QN = np.diag(QN)
         self.Q_bar = np.kron(np.eye(self.N, dtype=int), Q)
-        self.Q_bar[-self.n:, -self.n:] = QN
+        # self.Q_bar[-self.n:, -self.n:] = QN
         R = np.asarray(ast.literal_eval((config_data.get(section_name, 'R'))))
         R = np.diag(R)
         self.R_bar = np.kron(np.eye(self.N, dtype=int), R)
@@ -63,6 +64,8 @@ class CSSMPC(MpcController):
 
     def plan(self, state_cur):
         state_cur = state_cur.reshape((-1, 1))
+        e_psi, e_y, s = self.dynamics.track.localize(np.array((state_cur[-2, 0], state_cur[-1, 0])), state_cur[-3, 0])
+        state_cur[5:, :] = np.vstack((e_psi, e_y, s))
         us = self.initial_control_sequence.copy()
         xs = self.roll_out(state_cur, us, self.dt)
         A, B, d = self.dynamics.linearize_dynamics(xs[:, :-1], us, dt=self.dt)
@@ -75,7 +78,7 @@ class CSSMPC(MpcController):
         sigma_0 = np.zeros((self.n, self.n))
         mu_N = np.ones((self.n, 1)) * 9999
         self.solver.populate_params(A, B, d, D, xs[:, 0], sigma_0, sigma_0, self.Q_bar, self.R_bar, us[:, 0],
-                                    self.x_target.reshape((-1, 1)), mu_N, self.track_w, K=np.zeros((self.m*self.N, self.n*self.N)))
+                                    self.x_target.reshape((-1, 1), order='F'), mu_N, self.track_w, K=np.zeros((self.m*self.N, self.n*self.N)))
         V, K = self.solver.solve()
         K = K.reshape((self.m * self.N, self.n * self.N))
         us = V.reshape((self.m, self.N), order='F')
@@ -84,16 +87,15 @@ class CSSMPC(MpcController):
         u = np.where(u > self.u_range[:, 1], self.u_range[:, 1], u)
         u = np.where(u < self.u_range[:, 0], self.u_range[:, 0], u)
         xs = X_bar.reshape((self.n, self.N), order='F')
-        if self.renderer is not None:
-            # self.renderer.render_trajectories(trajectories, **{'color': "b"})
-            self.renderer.render_trajectories([xs], **{'color': "r"})
+        # if self.renderer is not None:
+        #     self.renderer.render_trajectories([xs], **{'color': "r"})
         # us = np.delete(us, 0, 1)
         # us = np.hstack((us, us[:, -1].reshape(us.shape[0], 1)))
         self.set_initial_control_sequence(us)
         return u
 
     def set_initial_control_sequence(self, initial_control_sequence):
-        self.initial_control_sequence = initial_control_sequence
+        self.initial_control_sequence = initial_control_sequence.copy()
 
     def roll_out(self, state_cur, us, dt):
         dynamics = self.get_dynamics()

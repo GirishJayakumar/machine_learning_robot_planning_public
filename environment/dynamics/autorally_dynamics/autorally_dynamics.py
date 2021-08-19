@@ -131,6 +131,10 @@ class AutoRallyDynamics(LinearizableDynamics):
         self.friction_nn = None
         self.throttle_nn = None
         self.track = None
+        if dynamics_type == 'autorally_dynamics_map':
+            self.cartesian = False
+        else:
+            self.cartesian = True
 
     def initialize_from_config(self, config_data, section_name):
         LinearizableDynamics.initialize_from_config(self, config_data, section_name)
@@ -191,9 +195,14 @@ class AutoRallyDynamics(LinearizableDynamics):
         wz = state[:, 2]
         wF = state[:, 3]
         wR = state[:, 4]
-        e_psi = state[:, 5]
-        e_y = state[:, 6]
-        s = state[:, 7]
+        if self.cartesian:
+            psi = state[:, 5]
+            X = state[:, 6]
+            Y = state[:, 7]
+        else:
+            e_psi = state[:, 5]
+            e_y = state[:, 6]
+            s = state[:, 7]
 
         steering = input[:, 0]
         delta = m_Vehicle_kSteering * steering + m_Vehicle_cSteering
@@ -283,11 +292,17 @@ class AutoRallyDynamics(LinearizableDynamics):
                 next_state[:, 4] = wR + deltaT * self.throttle_nn(input_tensor).detach().numpy().flatten()
             else:
                 next_state[:, 4] = T  # wR + deltaT * (m_Vehicle_kTorque * (T-wR) - m_Vehicle_rR * fRx) / m_Vehicle_IwR
-            rho = self.track.get_cur_reg_from_s(s)[4].flatten()
-            rho = np.zeros_like(s).flatten()
-            next_state[:, 5] = e_psi + deltaT * (wz - (vx * np.cos(e_psi) - vy * np.sin(e_psi)) / (1 - rho * e_y) * rho)
-            next_state[:, 6] = e_y + deltaT * (vx * np.sin(e_psi) + vy * np.cos(e_psi))
-            next_state[:, 7] = s + deltaT * (vx * np.cos(e_psi) - vy * np.sin(e_psi)) / (1 - rho * e_y)
+            if self.cartesian:
+                next_state[:, 5] = psi + deltaT * wz
+                next_state[:, 6] = X + deltaT * (np.cos(psi) * vx - np.sin(psi) * vy)
+                next_state[:, 7] = Y + deltaT * (np.sin(psi) * vx + np.cos(psi) * vy)
+
+            else:
+                rho = self.track.get_cur_reg_from_s(s)[4].flatten()
+                # rho = np.zeros_like(s).flatten()
+                next_state[:, 5] = e_psi + deltaT * (wz - (vx * np.cos(e_psi) - vy * np.sin(e_psi)) / (1 - rho * e_y) * rho)
+                next_state[:, 6] = e_y + deltaT * (vx * np.sin(e_psi) + vy * np.cos(e_psi))
+                next_state[:, 7] = s + deltaT * (vx * np.cos(e_psi) - vy * np.sin(e_psi)) / (1 - rho * e_y)
 
             # if len(cartesian) > 0:
             #     cartesian[0, :] += deltaT * wz
@@ -300,9 +315,14 @@ class AutoRallyDynamics(LinearizableDynamics):
             wz = next_state[:, 2]
             wF = next_state[:, 3]
             wR = next_state[:, 4]
-            e_psi = next_state[:, 5]
-            e_y = next_state[:, 6]
-            s = next_state[:, 7]
+            if self.cartesian:
+                psi = next_state[:, 5]
+                X = next_state[:, 6]
+                Y = next_state[:, 7]
+            else:
+                e_psi = next_state[:, 5]
+                e_y = next_state[:, 6]
+                s = next_state[:, 7]
 
         # if len(cartesian) > 0:
         #     return next_state.T, cartesian

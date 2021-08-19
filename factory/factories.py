@@ -2,9 +2,9 @@ def dynamics_factory_base(base_type):
     if base_type == 'bicycle_dynamics':
         from robot_planning.environment.dynamics.bicycle_dynamics import BicycleDynamics
         return BicycleDynamics()
-    elif base_type == 'autorally_dynamics':
+    elif base_type == 'autorally_dynamics_cartesian' or base_type == 'autorally_dynamics_map':
         from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics import AutoRallyDynamics
-        return AutoRallyDynamics()
+        return AutoRallyDynamics(dynamics_type=base_type)
     else:
         raise ValueError('dynamics type {} not recognized'.format(base_type))
 

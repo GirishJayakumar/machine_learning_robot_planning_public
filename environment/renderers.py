@@ -106,17 +106,18 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
 
     def initialize_from_config(self, config_data, section_name):
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
+        map_path = config_data.get(section_name, 'map_path')
+        self.map = np.load(map_path)
 
     def render_states(self, state_list=None, kinematics=None, **kwargs):
         for i in range(len(state_list)):
             state = state_list[i]
-            circle = plt.Circle((state[-1], state[-2]), kinematics.radius, **kwargs)
+            circle = plt.Circle((state[-2], state[-1]), kinematics.radius, **kwargs)
             self._axis.add_artist(circle)
 
     def render_obstacles(self, obstacle_list=None, **kwargs):
-        # for (ox, oy, size) in obstacle_list:
-        #     circle = plt.Circle((ox, oy), size, **kwargs)
-        #     self._axis.add_artist(circle)
+        self._axis.plot(self.map['X_in'], self.map['Y_in'], 'k')
+        self._axis.plot(self.map['X_out'], self.map['Y_out'], 'k')
         return
 
     def render_goal(self, goal=None, **kwargs):
