@@ -115,9 +115,6 @@ class SimulatedRobot(Robot):
             # TODO: implement randomly reset initial state. Needs to avoid obstacles.
             pass
 
-    def reset_time(self):
-        self.steps = 0
-
     def set_cost_evaluator(self, cost_evaluator):
         self.cost_evaluator = cost_evaluator
 
