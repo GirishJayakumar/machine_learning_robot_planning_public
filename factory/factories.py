@@ -126,3 +126,11 @@ def logger_factory_base(base_type):
         return MPPILogger()
     else:
         raise ValueError('logger type {} is not recognized'.format(base_type))
+
+
+def dynamics_linearizer_factory_base(base_type):
+    if base_type == 'numpy_dynamics_linearizer':
+        from robot_planning.environment.dynamics_linearizer import NumpyDynamicsLinearizer
+        return NumpyDynamicsLinearizer()
+    else:
+        raise ValueError('dynamics_linearizer type {} is not recognized'.format(base_type))
