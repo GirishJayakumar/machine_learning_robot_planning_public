@@ -3,7 +3,7 @@ import ast
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import kinematics_factory_base
 import matplotlib.pyplot as plt
-
+from robot_planning.utils import AUTORALLY_DYNAMICS_DIR
 
 class Renderer():
     def __init__(self):
@@ -113,8 +113,8 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
 
     def initialize_from_config(self, config_data, section_name):
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
-        map_path = config_data.get(section_name, 'map_path')
-        self.map = np.load(map_path)
+        map_file = config_data.get(section_name, 'map_file')
+        self.map = np.load(AUTORALLY_DYNAMICS_DIR + '/' + map_file)
 
     def render_states(self, state_list=None, kinematics=None, **kwargs):
         for i in range(len(state_list)):

@@ -12,7 +12,7 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 
 def main():
-    config_path = "scripts/configs/run_CSSMPC.cfg"
+    config_path = "configs/run_CSSMPC.cfg"
     config_data = ConfigParser.ConfigParser()
     config_data.read(config_path)
     agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')
