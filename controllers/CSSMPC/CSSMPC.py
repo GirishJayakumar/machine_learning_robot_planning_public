@@ -18,6 +18,7 @@ class CSSMPC(MpcController):
         self.l = 0
         self.dt = 0
         self.target_speed = 0.0
+        self.goal_traj = np.empty(())
         self.reference_traj_to_track = np.empty(())
         self.u_range = np.empty(())
         self.slew_rate = np.empty(())
@@ -43,6 +44,8 @@ class CSSMPC(MpcController):
             self.initial_control_sequence = init_ctrl_seq.reshape((self.get_control_dim(), self.get_control_horizon()))
         else:
             self.initial_control_sequence = np.tile(init_ctrl_seq.reshape((-1, 1)), (1, self.N))
+        self.goal_traj = np.tile(np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')), dtype=np.float64).reshape((-1, 1)), (1, self.N))
+        self.goal_traj[:, -1] = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_terminal_state')), dtype=np.float64)
         self.target_speed = float(config_data.get(section_name, 'speed'))
         self.x_target = np.zeros((self.n, self.N))
         self.x_target[0, :] = self.target_speed
@@ -80,7 +83,7 @@ class CSSMPC(MpcController):
         sigma_0 = np.zeros((self.n, self.n))
         mu_N = np.ones((self.n, 1)) * 9999
         self.solver.populate_params(A, B, d, D, xs[:, 0], sigma_0, sigma_0, self.Q_bar, self.R_bar, us[:, 0],
-                                    self.reference_traj_to_track.reshape((-1, 1)), mu_N, self.track_w, K=np.zeros((self.m*self.N, self.n*self.N)))
+                                    self.goal_traj.reshape((-1, 1), order='F'), mu_N, self.track_w, K=np.zeros((self.m*self.N, self.n*self.N)))
         V, K = self.solver.solve()
         K = K.reshape((self.m * self.N, self.n * self.N))
         us = V.reshape((self.m, self.N), order='F')
