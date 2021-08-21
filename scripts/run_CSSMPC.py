@@ -9,19 +9,18 @@ from robot_planning.factory.factory_from_config import factory_from_config
 import numpy as np
 
 import os
+import numpy as np
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 
-
 def main():
-    # config_path = "configs/batch_configs/exp_obs1x2.0_obs1y0.0_obs1r1.5_obs2x6.0_obs2y0.0_obs2r1.5_gamma1.0_alpha0.0_Numtraj100.0.cfg"
-    config_path = "scripts/configs/run_CSSMPC.cfg"
+    config_path = "configs/run_CSSMPC.cfg"
     config_data = ConfigParser.ConfigParser()
     config_data.read(config_path)
     agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')
     renderer1 = factory_from_config(renderer_factory_base, config_data, 'renderer1')
     agent1.set_renderer(renderer=renderer1)
-    while not 0:
+    while not np.linalg.norm(agent1.cost_evaluator.goal_checker.goal_state[-2:] - agent1.state[-2:]) < 1.5: #TODO: what are the 4th and 5th dimension of the autorally state?
         state_next, cost = agent1.take_action_with_controller()
         renderer1.show()
         renderer1.clear()
