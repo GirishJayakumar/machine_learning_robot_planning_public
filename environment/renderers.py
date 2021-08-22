@@ -113,8 +113,9 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
 
     def initialize_from_config(self, config_data, section_name):
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
-        map_file = config_data.get(section_name, 'map_file')
-        self.map = np.load(AUTORALLY_DYNAMICS_DIR + '/' + map_file)
+        if config_data.has_option(section_name, 'map_file'):
+            map_file = config_data.get(section_name, 'map_file')
+            self.map = np.load(AUTORALLY_DYNAMICS_DIR + '/' + map_file)
 
     def render_states(self, state_list=None, kinematics=None, **kwargs):
         for i in range(len(state_list)):
