@@ -56,4 +56,3 @@ class MPPI(MpcController):
             trajectory[:, i+1] = state_next
             state_cur = state_next
         return trajectory
-

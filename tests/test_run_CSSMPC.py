@@ -28,7 +28,7 @@ class TestRunBatchMPPI(unittest.TestCase):
         agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')
         renderer1 = factory_from_config(renderer_factory_base, config_data, 'renderer1')
         agent1.set_renderer(renderer=renderer1)
-        while not np.linalg.norm(agent1.cost_evaluator.goal_checker.goal_state[-2:] - agent1.state[-2:]) < 1.5: #TODO: Ji:what are the 4th and 5th dimension of the autorally state?
+        while not np.linalg.norm(agent1.cost_evaluator.goal_checker.goal_state[-2:] - agent1.state[-2:]) < 1.5:
             state_next, cost = agent1.take_action_with_controller()
             renderer1.show()
             renderer1.clear()

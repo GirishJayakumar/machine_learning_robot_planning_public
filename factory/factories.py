@@ -13,6 +13,9 @@ def cost_evaluator_factory_base(base_type):
     if base_type == 'quadratic_cost':
         from robot_planning.environment.cost_evaluators import QuadraticCostEvaluator
         return QuadraticCostEvaluator()
+    elif base_type == 'autorally_mppi_cost_evaluator':
+        from robot_planning.environment.cost_evaluators import AutorallyMPPICostEvaluator
+        return AutorallyMPPICostEvaluator()
     else:
         raise ValueError('cost_evaluator type {} not recognized'.format(base_type))
 
@@ -81,6 +84,9 @@ def stochastic_trajectories_sampler_factory_base(base_type):
     if base_type == 'MPPI_stochastic_trajectories_sampler':
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIStochasticTrajectoriesSampler
         return MPPIStochasticTrajectoriesSampler()
+    elif base_type == 'Autorally_MPPI_stochastic_trajectories_sampler':
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import AutorallyMPPIStochasticTrajectoriesSampler
+        return AutorallyMPPIStochasticTrajectoriesSampler()
     else:
         raise ValueError('stochastic_trajectories_sampler type {} is not recognized'.format(base_type))
 

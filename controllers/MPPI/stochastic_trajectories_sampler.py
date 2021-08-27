@@ -51,12 +51,11 @@ class MPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
                 u = noises
             cost = 0
             for j in range(control_horizon-1):
-                cost += cost_evaluator.evaluate(state_cur, u[:, j])
+                cost += cost_evaluator.evaluate(state_cur, u[:, j], dynamics=dynamics)
                 state_cur = dynamics.propagate(state_cur, u[:, j])
                 trajectory[:, j+1] = state_cur
-            cost += cost_evaluator.evaluate(state_cur) # final cost TODO: add final_cost_evaluate() function to cost_evaluator
+            cost += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
             trajectories.append(trajectory)
             us[i, :, :] = u
             costs[i, 0, 0] = cost
         return trajectories, us, costs
-
