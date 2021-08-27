@@ -118,6 +118,7 @@ class SimulatedRobot(Robot):
             else:
                 self.state = deepcopy(self.start_state)
 
+
     def set_cost_evaluator(self, cost_evaluator):
         self.cost_evaluator = cost_evaluator
 

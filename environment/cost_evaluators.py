@@ -36,7 +36,11 @@ class QuadraticCostEvaluator(CostEvaluator):
         if config_data.has_option(section_name, 'goal_cost'):
             self.goal_cost = config_data.getfloat(section_name, 'goal_cost') # goal_cost should be negative
         if config_data.has_option(section_name, 'Q'):
-            self.Q = np.asarray(ast.literal_eval(config_data.get(section_name, 'Q')))
+            Q = np.asarray(ast.literal_eval(config_data.get(section_name, 'Q')))
+            if Q.ndim == 1:
+                self.Q = np.diag(Q)
+            else:
+                self.Q = Q
         if config_data.has_option(section_name, 'R'):
             self.R = np.asarray(ast.literal_eval(config_data.get(section_name, 'R')))
         if config_data.has_option(section_name, 'goal_checker'):

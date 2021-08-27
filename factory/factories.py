@@ -5,6 +5,10 @@ def dynamics_factory_base(base_type):
     if base_type == 'point_dynamics':
         from robot_planning.environment.dynamics.point_dynamics import PointDynamics
         return PointDynamics()
+
+    if base_type == 'autorally_dynamics':
+        from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics import AutoRallyDynamics
+        return AutoRallyDynamics()
     else:
         raise ValueError('dynamics type {} not recognized'.format(base_type))
 
@@ -35,9 +39,12 @@ def renderer_factory_base(base_type):
     if base_type == 'MPPImatplotlib':
         from robot_planning.environment.renderers import MPPIMatplotlibRenderer
         return MPPIMatplotlibRenderer()
-    elif base_type == 'Envmatplotlib':
+    if base_type == 'Envmatplotlib':
         from robot_planning.environment.renderers import EnvMatplotlibRenderer
         return EnvMatplotlibRenderer()
+    if base_type == 'autorally_matplotlib':
+        from robot_planning.environment.renderers import AutorallyMatplotlibRenderer
+        return AutorallyMatplotlibRenderer()
     else:
         raise ValueError('Visualizer type {} not recognized'.format(base_type))
 
@@ -76,6 +83,9 @@ def controller_factory_base(base_type):
     if base_type == 'MPPI':
         from robot_planning.controllers.MPPI.MPPI import MPPI
         return MPPI()
+    elif base_type == 'CSSMPC':
+        from robot_planning.controllers.CSSMPC.CSSMPC import CSSMPC
+        return CSSMPC()
     else:
         raise ValueError('controller type {} is not recognized'.format(base_type))
 
@@ -129,3 +139,11 @@ def logger_factory_base(base_type):
         return MPPILogger()
     else:
         raise ValueError('logger type {} is not recognized'.format(base_type))
+
+
+def dynamics_linearizer_factory_base(base_type):
+    if base_type == 'numpy_dynamics_linearizer':
+        from robot_planning.environment.dynamics_linearizer import NumpyDynamicsLinearizer
+        return NumpyDynamicsLinearizer()
+    else:
+        raise ValueError('dynamics_linearizer type {} is not recognized'.format(base_type))
