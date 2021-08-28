@@ -46,10 +46,6 @@ class CSSMPC(MpcController):
             self.initial_control_sequence = np.tile(init_ctrl_seq.reshape((-1, 1)), (1, self.N))
         self.goal_traj = np.tile(np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')), dtype=np.float64).reshape((-1, 1)), (1, self.N))
         self.goal_traj[:, -1] = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_terminal_state')), dtype=np.float64)
-        self.target_speed = float(config_data.get(section_name, 'speed'))
-        self.x_target = np.zeros((self.n, self.N))
-        self.x_target[0, :] = self.target_speed
-        self.x_target[0, -1] = 2
         self.u_range = np.asarray(ast.literal_eval((config_data.get(section_name, 'ctrl_range'))))
         self.slew_rate = np.asarray(ast.literal_eval((config_data.get(section_name, 'ctrl_slew_rate'))))
         self.prob_lvl = float(config_data.get(section_name, 'prob_lvl'))
@@ -73,7 +69,7 @@ class CSSMPC(MpcController):
         state_cur[5:, :] = np.vstack((e_psi, e_y, s))
         us = self.initial_control_sequence.copy()
         xs = self.roll_out(state_cur, us, self.dt)
-        A, B, d = self.dynamics_linearizer.linearize_dynamics(xs[:, :-1], us, dt=self.dt) # TODO: use dynamics_linearizer
+        A, B, d = self.dynamics_linearizer.linearize_dynamics(xs[:, :-1], us, dt=self.dt)
         A = A.reshape((self.n, self.n, self.N), order='F')
         B = B.reshape((self.n, self.m, self.N), order='F')
         d = d.reshape((self.n, 1, self.N), order='F')
