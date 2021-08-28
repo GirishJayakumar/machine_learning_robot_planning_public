@@ -84,9 +84,9 @@ def stochastic_trajectories_sampler_factory_base(base_type):
     if base_type == 'MPPI_stochastic_trajectories_sampler':
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIStochasticTrajectoriesSampler
         return MPPIStochasticTrajectoriesSampler()
-    elif base_type == 'Autorally_MPPI_stochastic_trajectories_sampler':
-        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import AutorallyMPPIStochasticTrajectoriesSampler
-        return AutorallyMPPIStochasticTrajectoriesSampler()
+    elif base_type == 'MPPI_parallel_stochastic_trajectories_sampler_multiprocessing':
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIParallelStochasticTrajectoriesSamplerMultiprocessing
+        return MPPIParallelStochasticTrajectoriesSamplerMultiprocessing()
     else:
         raise ValueError('stochastic_trajectories_sampler type {} is not recognized'.format(base_type))
 
