@@ -82,23 +82,22 @@ class MPPIParallelStochasticTrajectoriesSamplerMultiprocessing(StochasticTraject
         trajectories_list = []
 
         noises_queue = mp.JoinableQueue()
-        us = mp.Queue()
-        costs = mp.Queue()
-        trajectories = mp.Queue()
+        results = mp.Queue()
         for i in range(self.number_of_trajectories):
             noises_queue.put(self.noise_sampler.sample(control_dim, control_horizon - 1))
         for i in range(self.number_of_processes):
-            p = mp.Process(target=self.sample_single_traj, args=(state_start, dynamics, cost_evaluator, v, control_horizon, control_dim, trajectories, us, costs, noises_queue, i))
+            p = mp.Process(target=self.sample_single_traj, args=(state_start, dynamics, cost_evaluator, v, control_horizon, noises_queue, results, i))
             p.start()
         noises_queue.join()
         for i in range(self.number_of_trajectories):
-            us_array[i, :, :] = us.get()
-            costs_array[i, 0, 0] = costs.get()
-            trajectories_list.append(trajectories.get())
+            result = results.get()
+            trajectories_list.append(result[0])
+            us_array[i, :, :] = result[1]
+            costs_array[i, 0, 0] = result[2]
 
         return trajectories_list, us_array, costs_array
 
-    def sample_single_traj(self, state_start, dynamics, cost_evaluator, v, control_horizon, control_dim, trajectories, us, costs, noises_queue, i):
+    def sample_single_traj(self, state_start, dynamics, cost_evaluator, v, control_horizon, noises_queue, results, i):
         while noises_queue.empty() is False:
             noises = noises_queue.get()
             state_cur = state_start
@@ -114,7 +113,5 @@ class MPPIParallelStochasticTrajectoriesSamplerMultiprocessing(StochasticTraject
                 state_cur = dynamics.propagate(state_cur, u[:, j])
                 trajectory[:, j + 1] = state_cur
             cost += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
-            trajectories.put(trajectory)
-            us.put(u)
-            costs.put(cost)
+            results.put([trajectory, u, cost])
             noises_queue.task_done()
