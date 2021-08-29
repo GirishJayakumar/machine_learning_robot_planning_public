@@ -5,7 +5,7 @@ except ImportError:
 
 from robot_planning.trainers.trainer import Trainer
 
-EVALUATE_ONLY = True
+EVALUATE_ONLY = False
 
 def main():
     config_path = "configs/run_trainer.cfg"

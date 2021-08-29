@@ -110,8 +110,15 @@ class SimulatedRobot(Robot):
 
     def reset_state(self, initial_state, random):
         if random:
-            # TODO: implement random initialize state
-            pass
+            state_shape = self.dynamics.get_state_dim()
+            state_bounds = self.dynamics.get_state_bounds()
+
+            new_state = []
+            for i in range(state_shape[0]):
+                new_state.append(np.random.random()*2*state_bounds[i] - state_bounds[i])
+            new_state = np.array(new_state)
+            self.state = deepcopy(new_state)
+
         else:
             if initial_state is not None:
                 self.state = initial_state

@@ -80,7 +80,7 @@ class Trainer(object):
 
         # Start training
         for ep in tqdm(range(0, self.hyper_parameters.n_episodes), position=0, leave=True, desc="Training Episodes"):
-            _, observations, _ = self.env.reset()
+            _, observations, _ = self.env.reset(random=True)
 
             for t in range(self.hyper_parameters.episode_len):
                 obs_torch = list_np2list_tensor(observations)

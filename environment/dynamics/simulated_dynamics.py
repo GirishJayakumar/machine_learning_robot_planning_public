@@ -30,6 +30,9 @@ class SimulatedDynamics(object):
     def get_max_action(self):
         raise NotImplementedError
 
+    def get_state_bounds(self):
+        raise NotImplementedError
+
 
 class NumpySimulatedDynamics(SimulatedDynamics):
     def __init__(self, dynamics_type=None, data_type=None, delta_t=None):
