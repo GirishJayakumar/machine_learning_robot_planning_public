@@ -5,7 +5,7 @@ except ImportError:
 
 from robot_planning.trainers.trainer import Trainer
 
-EVALUATE_ONLY = False
+EVALUATE_ONLY = True
 
 def main():
     config_path = "configs/run_trainer.cfg"
@@ -23,8 +23,8 @@ def main():
     # evaluate
     evaluator = Trainer()
     evaluator.initialize_from_config(config_data=config_data, section_name='trainer')
-    evaluator.load_model(episode=1999, training=False)
-    evaluator.evaluate(n_eval_episodes=50, eval_episode_length=50, visualize=True)
+    evaluator.load_model(episode=1600, training=False)
+    evaluator.evaluate(n_eval_episodes=50, eval_episode_length=200, visualize=True)
 
 
     print('done!')

@@ -90,7 +90,7 @@ class Environment(object):
 
             collision_free = not any([agent.cost_evaluator.collision_checker.check(agent.get_state()) for agent in self.agent_list])
             n_attempts += 1
-            if n_attempts >= 10:
+            if n_attempts >= 50:
                 raise Exception("initial state cannot be randomly initialized! check parameters!")
 
         for i in range(len(self.agent_list)):
