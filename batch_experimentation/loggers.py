@@ -1,6 +1,10 @@
+import copy
+
 import numpy as np
 import os
 from robot_planning.utils import EXPERIMENT_ROOT_DIR
+from robot_planning.factory.factories import collision_checker_factory_base, goal_checker_factory_base
+from robot_planning.factory.factory_from_config import factory_from_config
 
 
 class Logger(object):
@@ -43,5 +47,66 @@ class MPPILogger(Logger):
             os.mkdir(MPPI_current_experiment_dir)
 
 
+class AutorallyLogger(MPPILogger):
+    def __init__(self, experiment_dir=None, collision_checker=None, goal_checker=None):
+        MPPILogger.__init__(self, experiment_dir)
+        self.MPPI_experiments_folder_name = "Autorally_MPPI_experiments"
+        self.number_of_collisions = 0
+        self.number_of_laps = 0
+        self.number_of_failure = 0
+        self.in_obstacle = False
+        self.around_goal_position = True
+        self.collision_checker = collision_checker
+        self.goal_checker = goal_checker
 
+    def initialize_from_config(self, config_data, section_name):
+        MPPILogger.initialize_from_config(self, config_data, section_name)
+        if config_data.has_option(section_name, 'goal_checker'):
+            goal_checker_section_name = config_data.get(section_name, 'goal_checker')
+            self.goal_checker = factory_from_config(goal_checker_factory_base, config_data,
+                                                      goal_checker_section_name)
+        if config_data.has_option(section_name, 'collision_checker'):
+            collision_checker_section_name = config_data.get(section_name, 'collision_checker')
+            self.collision_checker = factory_from_config(collision_checker_factory_base, config_data,
+                                                          collision_checker_section_name)
 
+    def set_agent(self, agent):
+        self.agent = agent
+        self.in_obstacle = self.collision_checker.check(agent.get_state())
+        self.around_goal_position = self.goal_checker.check(agent.get_state())
+
+    def calculate_number_of_collisions(self, state, dynamics, collision_checker):
+        #This state is in cartesian coordinates, needs to be converted to map coordinates
+        state = self.global_to_local_coordinate_transform(state, dynamics)
+        if collision_checker.check(state) and self.in_obstacle is False: # the limit should not be hard-coded
+            self.in_obstacle = True
+            self.number_of_collisions += 1
+        if not collision_checker.check(state) and self.in_obstacle is True:
+            self.in_obstacle = False
+
+    def calculate_number_of_laps(self, state, dynamics, goal_checker):
+        #This state is in cartesian coordinates, needs to be converted to map coordinates
+        # state = self.global_to_local_coordinate_transform(state, dynamics)
+        if goal_checker.check(state) and self.around_goal_position is False: # the limit should not be hard-coded
+            self.around_goal_position = True
+            self.number_of_laps += 1
+        if not goal_checker.check(state) and self.around_goal_position is True:
+            self.around_goal_position = False
+
+    def add_number_of_failure(self):
+        self.number_of_failure += 1
+
+    def global_to_local_coordinate_transform(self, state, dynamics):
+        state = copy.deepcopy(state)
+        e_psi, e_y, s = dynamics.track.localize(np.array((state[-2], state[-1])), state[-3])
+        state[5:] = np.vstack((e_psi, e_y, s)).reshape((3,))
+        return state
+
+    def get_num_of_collisions(self):
+        return copy.deepcopy(self.number_of_collisions)
+
+    def get_num_of_laps(self):
+        return copy.deepcopy(self.number_of_laps)
+
+    def get_num_of_failures(self):
+        return copy.deepcopy(self.number_of_failure)

@@ -96,3 +96,5 @@ class MPPIConfigsGenerator(ConfigsGenerator):
         with open('configs/run_batch_MPPI.cfg', 'w') as configfile:
             run_batch_MPPI_config.write(configfile)
             configfile.close()
+
+

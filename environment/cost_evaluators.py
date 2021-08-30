@@ -43,6 +43,14 @@ class QuadraticCostEvaluator(CostEvaluator):
                 self.Q = np.diag(Q)
             else:
                 self.Q = Q
+        if config_data.has_option(section_name, 'QN'):
+            QN = np.asarray(ast.literal_eval(config_data.get(section_name, 'QN')))
+            if QN.ndim == 1:
+                self.QN = np.diag(QN)
+            else:
+                self.QN = QN
+        else:
+            self.QN = self.Q
         if config_data.has_option(section_name, 'R'):
             R = np.asarray(ast.literal_eval(config_data.get(section_name, 'R')))
             if R.ndim == 1:
@@ -75,21 +83,30 @@ class QuadraticCostEvaluator(CostEvaluator):
         return cost
 
     def evaluate_terminal_cost(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
-        return self.evaluate(state_cur, actions, dyna_obstacle_list, dynamics)
+        # evaluate cost of the final step of the horizon
+        cost = (1 / 2) * (state_cur - self.goal_checker.goal_state).T @ self.QN @ (
+                    state_cur - self.goal_checker.goal_state)
+        if actions is not None:
+            cost += (1 / 2) * actions.T @ self.R @ actions
+        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
+            if self.collision_cost is not None:
+                cost += self.collision_cost
+            else:
+                cost += 1000  # default collision cost
+        if self.goal_checker.check(state_cur):  # True for goal reached, False for goal not reached
+            if self.goal_cost is not None:
+                cost += self.goal_cost
+            else:
+                cost += -5000  # default goal cost
+        return cost
 
 
 class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
-    def __init__(self, goal_checker=None, collision_checker=None, Q=None, QN=None, R=None, collision_cost=None, goal_cost=None):
+    def __init__(self, goal_checker=None, collision_checker=None, Q=None, R=None, collision_cost=None, goal_cost=None):
         QuadraticCostEvaluator.__init__(self, goal_checker, collision_checker, Q, R, collision_cost, goal_cost)
-        self.QN = QN
 
     def initialize_from_config(self, config_data, section_name):
         QuadraticCostEvaluator.initialize_from_config(self, config_data, section_name)
-        QN = np.asarray(ast.literal_eval(config_data.get(section_name, 'QN')))
-        if QN.ndim == 1:
-            self.QN = np.diag(QN)
-        else:
-            self.QN = QN
 
     def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
         state_cur = copy.deepcopy(state_cur)

@@ -51,15 +51,8 @@ class CSSMPC(MpcController):
         self.prob_lvl = float(config_data.get(section_name, 'prob_lvl'))
         self.load_k = int(config_data.get(section_name, 'load_k'))
         self.track_w = float(config_data.get(section_name, 'track_w'))
-        Q = np.asarray(ast.literal_eval((config_data.get(section_name, 'Q'))))
-        Q = np.diag(Q)
-        QN = np.asarray(ast.literal_eval((config_data.get(section_name, 'QN'))))
-        QN = np.diag(QN)
-        self.Q_bar = np.kron(np.eye(self.N, dtype=int), Q)
-        # self.Q_bar[-self.n:, -self.n:] = QN
-        R = np.asarray(ast.literal_eval((config_data.get(section_name, 'R'))))
-        R = np.diag(R)
-        self.R_bar = np.kron(np.eye(self.N, dtype=int), R)
+        self.Q_bar = np.kron(np.eye(self.N, dtype=int), self.cost_evaluator.Q)
+        self.R_bar = np.kron(np.eye(self.N, dtype=int), self.cost_evaluator.R)
         self.solver = cs_solver.CSSolver(self.n, self.m, self.l, self.N, self.u_range, self.slew_rate, (False, ),
                                          mean_only=True, k_form=1, prob_lvl=self.prob_lvl, chance_const_N=self.N)
 
@@ -88,10 +81,6 @@ class CSSMPC(MpcController):
         u = np.where(u > self.u_range[:, 1], self.u_range[:, 1], u)
         u = np.where(u < self.u_range[:, 0], self.u_range[:, 0], u)
         xs = X_bar.reshape((self.n, self.N), order='F')
-        # if self.renderer is not None:
-        #     self.renderer.render_trajectories([xs], **{'color': "r"})
-        # us = np.delete(us, 0, 1)
-        # us = np.hstack((us, us[:, -1].reshape(us.shape[0], 1)))
         self.set_initial_control_sequence(us)
         return u
 
