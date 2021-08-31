@@ -27,6 +27,9 @@ def collision_checker_factory_base(base_type):
     elif base_type == 'point_collision_checker':
         from robot_planning.environment.collision_checker import PointCollisionChecker
         return PointCollisionChecker()
+    elif base_type == 'autorally_collision_checker':
+        from robot_planning.environment.collision_checker import AutorallyCollisionChecker
+        return AutorallyCollisionChecker()
     else:
         raise ValueError('collsion_checker type {} not recognized'.format(base_type))
 
@@ -46,6 +49,9 @@ def goal_checker_factory_base(base_type):
     if base_type == 'state_space_goal_checker':
         from robot_planning.environment.goal_checker import StateSpaceGoalChecker
         return StateSpaceGoalChecker()
+    elif base_type == 'autorally_cartesian_goal_checker':
+        from robot_planning.environment.goal_checker import AutorallyCartesianGoalChecker
+        return AutorallyCartesianGoalChecker()
     else:
         raise ValueError('goal_checker type {} not recognized'.format(base_type))
 
@@ -122,6 +128,9 @@ def configs_generator_factory_base(base_type):
     if base_type == 'MPPI_configs_generator':
         from robot_planning.batch_experimentation.configs_generator import MPPIConfigsGenerator
         return MPPIConfigsGenerator()
+    elif base_type == 'autorally_CSSMPC_configs_generator':
+        from robot_planning.batch_experimentation.configs_generator import AutorallyCSSMPCConfigsGenerator
+        return AutorallyCSSMPCConfigsGenerator()
     else:
         raise ValueError('config_generator type {} is not recognized'.format(base_type))
 
@@ -130,6 +139,9 @@ def logger_factory_base(base_type):
     if base_type == 'MPPI_logger':
         from robot_planning.batch_experimentation.loggers import MPPILogger
         return MPPILogger()
+    elif base_type == 'Autorally_logger':
+        from robot_planning.batch_experimentation.loggers import AutorallyLogger
+        return AutorallyLogger()
     else:
         raise ValueError('logger type {} is not recognized'.format(base_type))
 
