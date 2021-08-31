@@ -128,6 +128,9 @@ def configs_generator_factory_base(base_type):
     if base_type == 'MPPI_configs_generator':
         from robot_planning.batch_experimentation.configs_generator import MPPIConfigsGenerator
         return MPPIConfigsGenerator()
+    elif base_type == 'autorally_CSSMPC_configs_generator':
+        from robot_planning.batch_experimentation.configs_generator import AutorallyCSSMPCConfigsGenerator
+        return AutorallyCSSMPCConfigsGenerator()
     else:
         raise ValueError('config_generator type {} is not recognized'.format(base_type))
 

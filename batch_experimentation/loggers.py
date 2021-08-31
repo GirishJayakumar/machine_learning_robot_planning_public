@@ -1,5 +1,5 @@
 import copy
-
+import csv
 import numpy as np
 import os
 from robot_planning.utils import EXPERIMENT_ROOT_DIR
@@ -11,46 +11,48 @@ class Logger(object):
     def __init__(self, experiment_root_dir=None, experiment_name=None):
         self.experiment_root_dir = None
         self.experiment_name = None
-
-    def initialize_from_config(self, config_data, section_name):
-        pass
-
-    def save_fig(self):
-        raise NotImplementedError
-
-
-class MPPILogger(Logger):
-    def __init__(self, experiment_dir=None):
-        Logger.__init__(self, experiment_dir)
-        self.MPPI_experiments_folder_name = "MPPI_experiments"
+        self.experiments_folder_name = None
 
     def initialize_from_config(self, config_data, section_name):
         self.experiment_root_dir = EXPERIMENT_ROOT_DIR
         if config_data.has_option(section_name, 'experiment_name'):
             self.experiment_name = config_data.get(section_name, 'experiment_name')
 
+    def save_fig(self):
+        raise NotImplementedError
+
     def set_experiment_name(self, experiment_name):
         self.experiment_name = experiment_name
+
+    def create_save_dir(self):
+        experiments_dir = self.experiment_root_dir + "/" + self.experiments_folder_name
+        if not os.path.isdir(experiments_dir):
+            os.mkdir(experiments_dir)
+        current_experiment_dir = self.experiment_root_dir + "/" + self.experiments_folder_name + "/" + self.experiment_name
+        if not os.path.isdir(current_experiment_dir):
+            os.mkdir(current_experiment_dir)
+        return experiments_dir, current_experiment_dir
+
+
+class MPPILogger(Logger):
+    def __init__(self, experiment_dir=None):
+        Logger.__init__(self, experiment_dir)
+        self.experiments_folder_name = "MPPI_experiments"
+
+    def initialize_from_config(self, config_data, section_name):
+        Logger.initialize_from_config(self, config_data, section_name)
 
     def save_fig(self, renderer=None, time=None):
         self.create_save_dir()
         time = str(np.around(time, decimals=2))
-        save_path_name = self.experiment_root_dir + "/" + self.MPPI_experiments_folder_name + "/" + self.experiment_name + "/" + time + ".png"
+        save_path_name = self.experiment_root_dir + "/" + self.experiments_folder_name + "/" + self.experiment_name + "/" + time + ".png"
         renderer.save(save_path_name)
 
-    def create_save_dir(self):
-        MPPI_experiments_dir = self.experiment_root_dir + "/" + self.MPPI_experiments_folder_name
-        if not os.path.isdir(MPPI_experiments_dir):
-            os.mkdir(MPPI_experiments_dir)
-        MPPI_current_experiment_dir = self.experiment_root_dir + "/" + self.MPPI_experiments_folder_name + "/" + self.experiment_name
-        if not os.path.isdir(MPPI_current_experiment_dir):
-            os.mkdir(MPPI_current_experiment_dir)
 
-
-class AutorallyLogger(MPPILogger):
+class AutorallyLogger(Logger):
     def __init__(self, experiment_dir=None, collision_checker=None, goal_checker=None):
-        MPPILogger.__init__(self, experiment_dir)
-        self.MPPI_experiments_folder_name = "Autorally_MPPI_experiments"
+        Logger.__init__(self, experiment_dir)
+        self.experiments_folder_name = "Autorally_experiments"
         self.number_of_collisions = 0
         self.number_of_laps = 0
         self.number_of_failure = 0
@@ -60,7 +62,7 @@ class AutorallyLogger(MPPILogger):
         self.goal_checker = goal_checker
 
     def initialize_from_config(self, config_data, section_name):
-        MPPILogger.initialize_from_config(self, config_data, section_name)
+        Logger.initialize_from_config(self, config_data, section_name)
         if config_data.has_option(section_name, 'goal_checker'):
             goal_checker_section_name = config_data.get(section_name, 'goal_checker')
             self.goal_checker = factory_from_config(goal_checker_factory_base, config_data,
@@ -69,6 +71,12 @@ class AutorallyLogger(MPPILogger):
             collision_checker_section_name = config_data.get(section_name, 'collision_checker')
             self.collision_checker = factory_from_config(collision_checker_factory_base, config_data,
                                                           collision_checker_section_name)
+        _, current_experiment_dir = self.create_save_dir()
+        self.log_file_path = current_experiment_dir + "/" + self.experiment_name + "_log_file.csv"
+        with open(self.log_file_path, 'w') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            # TODO: extend the list if necessary
+            csvwriter.writerow(['robot time', 'state', 'lap_num', 'collision_num', 'controller_failure_num'])
 
     def set_agent(self, agent):
         self.agent = agent
@@ -85,7 +93,7 @@ class AutorallyLogger(MPPILogger):
             self.in_obstacle = False
 
     def calculate_number_of_laps(self, state, dynamics, goal_checker):
-        #This state is in cartesian coordinates, needs to be converted to map coordinates
+        # This state is in cartesian coordinates, needs to be converted to map coordinates
         # state = self.global_to_local_coordinate_transform(state, dynamics)
         if goal_checker.check(state) and self.around_goal_position is False: # the limit should not be hard-coded
             self.around_goal_position = True
@@ -95,6 +103,13 @@ class AutorallyLogger(MPPILogger):
 
     def add_number_of_failure(self):
         self.number_of_failure += 1
+
+    def log(self):
+        # TODO: extend info if necessary
+        info = [self.agent.get_time(), self.agent.get_state(), self.number_of_laps, self.number_of_collisions, self.number_of_failure]
+        with open(self.log_file_path, 'a') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow(info)
 
     def global_to_local_coordinate_transform(self, state, dynamics):
         state = copy.deepcopy(state)

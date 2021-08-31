@@ -27,12 +27,14 @@ def main():
         except:
             logger.add_number_of_failure()
             agent1.reset_state()
+            agent1.reset_time()
         logger.calculate_number_of_laps(state_next, dynamics=agent1.dynamics, goal_checker=agent1.cost_evaluator.goal_checker)
         logger.calculate_number_of_collisions(state_next, dynamics=agent1.dynamics, collision_checker=agent1.cost_evaluator.collision_checker)
         renderer1.show()
         renderer1.clear()
         print("state: ", state_next)
         print("number of laps: ", logger.get_num_of_laps(), "number of collisions: ", logger.get_num_of_collisions(), "number of controller failures: ", logger.get_num_of_failures())
+
 
 if __name__ == '__main__':
     main()
