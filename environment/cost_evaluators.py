@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import ast
 from robot_planning.factory.factories import collision_checker_factory_base, goal_checker_factory_base
@@ -72,6 +74,9 @@ class QuadraticCostEvaluator(CostEvaluator):
                 cost += -5000  # default goal cost
         return cost
 
+    def evaluate_terminal_cost(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
+        return self.evaluate(state_cur, actions, dyna_obstacle_list, dynamics)
+
 
 class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
     def __init__(self, goal_checker=None, collision_checker=None, Q=None, QN=None, R=None, collision_cost=None, goal_cost=None):
@@ -120,3 +125,4 @@ class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
         new_state = state.copy()
         new_state[5:, :] = np.vstack((e_psi, e_y, s))
         return new_state
+

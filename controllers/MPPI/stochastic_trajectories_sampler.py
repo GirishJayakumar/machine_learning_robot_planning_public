@@ -63,6 +63,41 @@ class MPPIStochasticTrajectoriesSamplerSlow(StochasticTrajectoriesSampler):
         return trajectories, us, costs
 
 
+class MPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
+    def __init__(self, number_of_trajectories=None, uncontrolled_trajectories_portion=None, noise_sampler=None):
+        StochasticTrajectoriesSampler.__init__(self, number_of_trajectories, uncontrolled_trajectories_portion, noise_sampler)
+
+    def initialize_from_config(self, config_data, section_name):
+        StochasticTrajectoriesSampler.initialize_from_config(self, config_data, section_name)
+
+    def sample(self, state_cur, v, control_horizon, control_dim, dynamics, cost_evaluator):
+        #  state_cur is the current state, v is the nominal control sequence
+        state_start = state_cur.copy()
+        # us = np.zeros((self.number_of_trajectories, control_dim, control_horizon-1))
+        costs = np.zeros((self.number_of_trajectories, 1, 1))
+        # trajectories = []
+        state_cur = np.tile(state_start.reshape((-1, 1)), (1, self.number_of_trajectories))
+        trajectories = np.zeros((state_cur.shape[0], control_horizon, self.number_of_trajectories))
+        trajectories[:, 0, :] = state_cur
+        noises = self.noise_sampler.sample(control_dim, (control_horizon - 1) * self.number_of_trajectories)
+        noises = noises.reshape((control_dim, (control_horizon - 1), self.number_of_trajectories))
+        num_controlled_trajectories = int((1 - self.uncontrolled_trajectories_portion) * self.number_of_trajectories)
+        us = np.zeros((v.shape[0], v.shape[1], self.number_of_trajectories))
+        us[:, :, :num_controlled_trajectories] = np.expand_dims(v, axis=2)
+        us += noises
+        # cost = 0
+        for j in range(control_horizon-1):
+            costs += cost_evaluator.evaluate(state_cur, us[:, j, :], dynamics=dynamics)
+            state_cur = dynamics.propagate(state_cur, us[:, j, :])
+            trajectories[:, j+1, :] = state_cur
+        costs += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
+        # trajectories.append(trajectory)
+        # us[i, :, :] = u
+        # costs[:, 0, 0] = cost
+        us = np.moveaxis(us, 2, 0)
+        return trajectories, us, costs
+
+
 class MPPIParallelStochasticTrajectoriesSamplerMultiprocessing(StochasticTrajectoriesSampler):
     def __init__(self, number_of_trajectories=None, uncontrolled_trajectories_portion=None, noise_sampler=None, number_of_processes=8):
         StochasticTrajectoriesSampler.__init__(self, number_of_trajectories, uncontrolled_trajectories_portion,
