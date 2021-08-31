@@ -386,7 +386,7 @@ class CSSolver:
         # self.M.solve()
         t0 = time.time()
         self.M.solve()
-        print((time.time() - t0))
+        print('convex opt time: ', (time.time() - t0))
         try:
             if self.mean_only:
                 K_level = np.zeros((self.m*self.N, self.n*self.N))

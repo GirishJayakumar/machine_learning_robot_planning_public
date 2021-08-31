@@ -8,6 +8,7 @@ import numpy as np
 import copy
 from copy import deepcopy
 import ast
+import time
 
 
 class Robot(object):
@@ -149,7 +150,7 @@ class SimulatedRobot(Robot):
         return state_next
 
     def evaluate_state_action_pair_cost(self, state, action):
-        return self.cost_evaluator.evaluate(state, action)
+        return self.cost_evaluator.evaluate(state.reshape((-1, 1)), action.reshape((-1, 1)), dynamics=self.dynamics)
 
     def take_action(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
@@ -184,13 +185,14 @@ class SimulatedRobot(Robot):
     def take_action_with_controller(self):
         state_next = None
         cost = 0
+        t0 = time.time()
         action = self.controller.plan(state_cur=self.get_state())
-        print(action)
+        print('plan time: ', time.time() - t0)
+        state_test = self.get_state()
         self.render_robot_state()
         self.render_goal()
         self.render_obstacles()
         for _ in range(self.steps_per_action):
-            print(self.get_state())
             state_next = self.propagate_robot(action)
             cost += self.evaluate_state_action_pair_cost(state_next, action)
         assert state_next is not None, 'invalid state!'

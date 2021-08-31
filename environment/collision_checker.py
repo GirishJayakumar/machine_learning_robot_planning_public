@@ -50,7 +50,7 @@ class PointCollisionChecker(CollisionChecker):
         for i in range(len(self.obstacles)):
             if self.obstacles_radius[i] == 0:
                 continue
-            if np.linalg.norm(self.obstacles[i] - state_cur[:2]) < self.obstacles_radius[i] + self.kinematics.get_radius():
+            if np.linalg.norm(self.obstacles[i] - state_cur[:2, :]) < self.obstacles_radius[i] + self.kinematics.get_radius():
                 return True
         if self.other_agents_list is not None:
             for agent in self.other_agents_list:

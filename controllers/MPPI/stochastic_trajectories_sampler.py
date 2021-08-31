@@ -3,6 +3,8 @@ import ast
 import copy
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import noise_sampler_factory_base
+import multiprocessing as mp
+import threading
 
 
 class StochasticTrajectoriesSampler():
@@ -27,7 +29,7 @@ class StochasticTrajectoriesSampler():
         self.number_of_trajectories = number_of_trajectories
 
 
-class MPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
+class MPPIStochasticTrajectoriesSamplerSlow(StochasticTrajectoriesSampler):
     def __init__(self, number_of_trajectories=None, uncontrolled_trajectories_portion=None, noise_sampler=None):
         StochasticTrajectoriesSampler.__init__(self, number_of_trajectories, uncontrolled_trajectories_portion, noise_sampler)
 
@@ -51,12 +53,65 @@ class MPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
                 u = noises
             cost = 0
             for j in range(control_horizon-1):
-                cost += cost_evaluator.evaluate(state_cur, u[:, j])
+                cost += cost_evaluator.evaluate(state_cur, u[:, j], dynamics=dynamics)
                 state_cur = dynamics.propagate(state_cur, u[:, j])
                 trajectory[:, j+1] = state_cur
-            cost += cost_evaluator.evaluate(state_cur) # final cost TODO: add final_cost_evaluate() function to cost_evaluator
+            cost += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
             trajectories.append(trajectory)
             us[i, :, :] = u
             costs[i, 0, 0] = cost
         return trajectories, us, costs
 
+
+class MPPIParallelStochasticTrajectoriesSamplerMultiprocessing(StochasticTrajectoriesSampler):
+    def __init__(self, number_of_trajectories=None, uncontrolled_trajectories_portion=None, noise_sampler=None, number_of_processes=8):
+        StochasticTrajectoriesSampler.__init__(self, number_of_trajectories, uncontrolled_trajectories_portion,
+                                               noise_sampler)
+        self.number_of_processes = 8
+
+    def initialize_from_config(self, config_data, section_name):
+        StochasticTrajectoriesSampler.initialize_from_config(self, config_data, section_name)
+        if config_data.has_option(section_name, 'number_of_processes'):
+            self.number_of_processes = config_data.getint(section_name, 'number_of_processes')
+
+    def sample(self, state_cur, v, control_horizon, control_dim, dynamics, cost_evaluator):
+        #  state_cur is the current state, v is the nominal control sequence
+        state_start = state_cur
+        us_array = np.zeros((self.number_of_trajectories, control_dim, control_horizon - 1))
+        costs_array = np.zeros((self.number_of_trajectories, 1, 1))
+        trajectories_list = []
+
+        noises_queue = mp.JoinableQueue()
+        results = mp.Queue()
+        for i in range(self.number_of_trajectories):
+            noises_queue.put(self.noise_sampler.sample(control_dim, control_horizon - 1))
+        for i in range(self.number_of_processes):
+            p = mp.Process(target=self.sample_single_traj, args=(state_start, dynamics, cost_evaluator, v, control_horizon, noises_queue, results, i))
+            p.start()
+        noises_queue.join()
+        for i in range(self.number_of_trajectories):
+            result = results.get()
+            trajectories_list.append(result[0])
+            us_array[i, :, :] = result[1]
+            costs_array[i, 0, 0] = result[2]
+
+        return trajectories_list, us_array, costs_array
+
+    def sample_single_traj(self, state_start, dynamics, cost_evaluator, v, control_horizon, noises_queue, results, i):
+        while noises_queue.empty() is False:
+            noises = noises_queue.get()
+            state_cur = state_start
+            trajectory = np.zeros((dynamics.get_state_dim()[0], control_horizon))
+            trajectory[:, 0] = state_cur
+            if i > (1 - self.uncontrolled_trajectories_portion) * self.number_of_trajectories:
+                u = v + noises
+            else:
+                u = noises
+            cost = 0
+            for j in range(control_horizon - 1):
+                cost += cost_evaluator.evaluate(state_cur, u[:, j], dynamics=dynamics)
+                state_cur = dynamics.propagate(state_cur, u[:, j])
+                trajectory[:, j + 1] = state_cur
+            cost += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
+            results.put([trajectory, u, cost])
+            noises_queue.task_done()

@@ -3,7 +3,7 @@ import ast
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import kinematics_factory_base
 import matplotlib.pyplot as plt
-
+from robot_planning.utils import AUTORALLY_DYNAMICS_DIR
 
 class Renderer():
     def __init__(self):
@@ -56,14 +56,21 @@ class MatplotlibRenderer(Renderer):
         self._axis = self._figure.add_subplot(1, 1, 1)
         plt.figure(self._figure.number)
 
-    def show(self):
+    def set_range(self):
         if not self.auto_range:
             self._axis.axis([self.xaxis_range[0], self.xaxis_range[1], self.yaxis_range[0],  self.yaxis_range[1]])
         plt.grid(True)
+
+    def show(self):
+        self.set_range()
         plt.pause(0.01)
 
     def clear(self):
         plt.cla()
+
+    def save(self, save_path_name):
+        self.set_range()
+        plt.savefig(save_path_name)
 
 
 class MPPIMatplotlibRenderer(MatplotlibRenderer):
@@ -80,8 +87,8 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
             self._axis.add_artist(circle)
 
     def render_obstacles(self, obstacle_list=None, **kwargs):
-        for (ox, oy, size) in obstacle_list:
-            circle = plt.Circle((ox, oy), size, **kwargs)
+        for (x, y, size) in obstacle_list:
+            circle = plt.Circle((x, y), size, **kwargs)
             self._axis.add_artist(circle)
 
     def render_goal(self, goal=None, **kwargs):
@@ -101,19 +108,35 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
 
 
 class AutorallyMatplotlibRenderer(MatplotlibRenderer):
-    def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
+    def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None, trajectories_rendering=True):
         MatplotlibRenderer.__init__(self, xaxis_range, yaxis_range, auto_range, figure_size, figure_dpi)
+        self.trajectories_rendering = trajectories_rendering
+        self.path_rendering = False
+        self.path = np.zeros((3, 0))
+        self.cbar = None
 
     def initialize_from_config(self, config_data, section_name):
+        if config_data.has_option(section_name, 'trajectories_rendering'):
+            self.trajectories_rendering = config_data.getboolean(section_name, 'trajectories_rendering')
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
-        map_path = config_data.get(section_name, 'map_path')
-        self.map = np.load(map_path)
+        if config_data.has_option(section_name, 'map_file'):
+            map_file = config_data.get(section_name, 'map_file')
+            self.map = np.load(AUTORALLY_DYNAMICS_DIR + '/' + map_file)
+        self.path_rendering = config_data.get(section_name, 'path_rendering')
 
     def render_states(self, state_list=None, kinematics=None, **kwargs):
         for i in range(len(state_list)):
             state = state_list[i]
             circle = plt.Circle((state[-2], state[-1]), kinematics.radius, **kwargs)
             self._axis.add_artist(circle)
+        if self.path_rendering:
+            self.path = np.append(self.path, np.vstack((state[0], state[6], state[7])), axis=1)
+            pcm = self._axis.scatter(self.path[1, :], self.path[2, :], c=self.path[0, :], marker='.')
+            if self.path.shape[1] < 2:
+                self.cbar = plt.colorbar(pcm)
+                self.cbar.set_label('speed (m/s)')
+            else:
+                self.cbar.update_normal(pcm)
 
     def render_obstacles(self, obstacle_list=None, **kwargs):
         self._axis.plot(self.map['X_in'], self.map['Y_in'], 'k')
@@ -129,9 +152,12 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
         return
 
     def render_trajectories(self, trajectory_list=None, **kwargs):
-        for trajectory in trajectory_list:
-            previous_state = trajectory[:, 0]
-            for i in range(1, trajectory.shape[1]):
-                state = trajectory[:, i]
-                line, = self._axis.plot([state[-1], previous_state[-1]], [state[-2], previous_state[-2]], **kwargs)
-                previous_state = state
+        if self.trajectories_rendering is True:
+            for trajectory in trajectory_list:
+                previous_state = trajectory[:, 0]
+                for i in range(1, trajectory.shape[1]):
+                    state = trajectory[:, i]
+                    line, = self._axis.plot([state[-2], previous_state[-2]], [state[-1], previous_state[-1]], **kwargs)
+                    previous_state = state
+        else:
+            pass
