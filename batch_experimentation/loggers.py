@@ -125,3 +125,21 @@ class AutorallyLogger(Logger):
 
     def get_num_of_failures(self):
         return copy.deepcopy(self.number_of_failure)
+
+
+class AutorallyMPPILogger(AutorallyLogger):
+    def __init__(self, experiment_dir=None, collision_checker=None, goal_checker=None):
+        AutorallyLogger.__init__(self, experiment_dir)
+        self.experiments_folder_name = "Autorally_MPPI_experiments"
+
+    def initialize_from_config(self, config_data, section_name):
+        AutorallyLogger.initialize_from_config(self, config_data, section_name)
+
+
+class AutorallyCSSMPCLogger(AutorallyLogger):
+    def __init__(self, experiment_dir=None, collision_checker=None, goal_checker=None):
+        AutorallyLogger.__init__(self, experiment_dir)
+        self.experiments_folder_name = "Autorally_CSSMPC_experiments"
+
+    def initialize_from_config(self, config_data, section_name):
+        AutorallyLogger.initialize_from_config(self, config_data, section_name)

@@ -142,6 +142,12 @@ def logger_factory_base(base_type):
     elif base_type == 'Autorally_logger':
         from robot_planning.batch_experimentation.loggers import AutorallyLogger
         return AutorallyLogger()
+    elif base_type == 'Autorally_MPPI_logger':
+        from robot_planning.batch_experimentation.loggers import AutorallyMPPILogger
+        return AutorallyMPPILogger()
+    elif base_type == 'Autorally_CSSMPC_logger':
+        from robot_planning.batch_experimentation.loggers import AutorallyCSSMPCLogger
+        return AutorallyCSSMPCLogger()
     else:
         raise ValueError('logger type {} is not recognized'.format(base_type))
 

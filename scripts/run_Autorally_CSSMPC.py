@@ -30,6 +30,7 @@ def main():
             agent1.reset_time()
         logger.calculate_number_of_laps(state_next, dynamics=agent1.dynamics, goal_checker=agent1.cost_evaluator.goal_checker)
         logger.calculate_number_of_collisions(state_next, dynamics=agent1.dynamics, collision_checker=agent1.cost_evaluator.collision_checker)
+        logger.log()
         renderer1.show()
         renderer1.clear()
         print("state: ", state_next)
