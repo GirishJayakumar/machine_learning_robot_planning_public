@@ -47,10 +47,10 @@ class MapCA:
         if head_dist > np.pi:
             # print(psi, np.arctan2(self.dif_vecs[1, mini], self.dif_vecs[0, mini]))
             head_dist -= 2*np.pi
-            print(norm_dist, s_dist, head_dist * 180 / np.pi)
+            # print(norm_dist, s_dist, head_dist * 180 / np.pi)
         elif head_dist < -np.pi:
             head_dist += 2*np.pi
-            print(norm_dist, s_dist, head_dist * 180 / np.pi)
+            # print(norm_dist, s_dist, head_dist * 180 / np.pi)
         # if printi:
         #     print(norm_dist, s_dist, head_dist*180/np.pi)
         #     printi=0

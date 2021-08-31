@@ -1,5 +1,3 @@
-import copy
-
 import numpy as np
 import ast
 from robot_planning.factory.factories import collision_checker_factory_base, goal_checker_factory_base
@@ -73,56 +71,3 @@ class QuadraticCostEvaluator(CostEvaluator):
             else:
                 cost += -5000  # default goal cost
         return cost
-
-    def evaluate_terminal_cost(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
-        return self.evaluate(state_cur, actions, dyna_obstacle_list, dynamics)
-
-
-class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
-    def __init__(self, goal_checker=None, collision_checker=None, Q=None, QN=None, R=None, collision_cost=None, goal_cost=None):
-        QuadraticCostEvaluator.__init__(self, goal_checker, collision_checker, Q, R, collision_cost, goal_cost)
-        self.QN = QN
-
-    def initialize_from_config(self, config_data, section_name):
-        QuadraticCostEvaluator.initialize_from_config(self, config_data, section_name)
-        QN = np.asarray(ast.literal_eval(config_data.get(section_name, 'QN')))
-        if QN.ndim == 1:
-            self.QN = np.diag(QN)
-        else:
-            self.QN = QN
-
-    def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
-        map_state = self.global_to_local_coordinate_transform(state_cur, dynamics)
-        error_state_right = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=2)
-        error_state_left = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=1)
-        cost = (1/2) * error_state_left @ np.tile(np.expand_dims(self.Q, axis=0), (state_cur.shape[1], 1, 1)) @ error_state_right
-        if actions is not None:
-            actions_left = numpy.expand_dims(actions.T, axis=1)
-            actions_right = numpy.expand_dims(actions.T, axis=2)
-            cost += (1/2) * actions_left @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ actions_right
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
-            if self.collision_cost is not None:
-                cost += self.collision_cost
-            else:
-                cost += 1000  # default collision cost
-        return cost
-
-    def evaluate_terminal_cost(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
-        map_state = self.global_to_local_coordinate_transform(state_cur, dynamics)
-        error_state_right = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=2)
-        error_state_left = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=1)
-        cost = (1 / 2) * error_state_left @ np.tile(np.expand_dims(self.QN, axis=0),
-                                                    (state_cur.shape[1], 1, 1)) @ error_state_right
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
-            if self.collision_cost is not None:
-                cost += self.collision_cost
-            else:
-                cost += 1000  # default collision cost
-        return cost
-
-    def global_to_local_coordinate_transform(self, state, dynamics):
-        e_psi, e_y, s = dynamics.track.localize(np.array((state[-2, :], state[-1, :])), state[-3, :])
-        new_state = state.copy()
-        new_state[5:, :] = np.vstack((e_psi, e_y, s))
-        return new_state
-

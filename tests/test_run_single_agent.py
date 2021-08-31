@@ -28,3 +28,7 @@ class TestRunSingleAgent(unittest.TestCase):
         for i in range(20):
             state_next, cost = agent1.take_action(action)
             print(state_next, "    ", cost)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -44,3 +44,7 @@ class TestRunEnvironment(unittest.TestCase):
             print("states:   ", states)
             print("observations:   ", observations)
             print("costs:   ", costs)
+
+
+if __name__ == '__main__':
+    unittest.main()

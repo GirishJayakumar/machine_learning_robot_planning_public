@@ -1,6 +1,7 @@
 from robot_planning.controllers.controller import MpcController
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import dynamics_factory_base
+from robot_planning.factory.factories import dynamics_linearizer_factory_base
 from robot_planning.controllers.CSSMPC import cs_solver
 import ast
 import numpy as np
@@ -17,7 +18,8 @@ class CSSMPC(MpcController):
         self.l = 0
         self.dt = 0
         self.target_speed = 0.0
-        self.x_target = np.empty(())
+        self.goal_traj = np.empty(())
+        self.reference_traj_to_track = np.empty(())
         self.u_range = np.empty(())
         self.slew_rate = np.empty(())
         self.prob_lvl = 0.0
@@ -30,6 +32,8 @@ class CSSMPC(MpcController):
         MpcController.initialize_from_config(self, config_data, section_name)
         dynamics_section_name = config_data.get(section_name, 'dynamics')
         self.dynamics = factory_from_config(dynamics_factory_base, config_data, dynamics_section_name)
+        dynamics_linearizer_section_name = config_data.get(section_name, 'dynamics_linearizer')
+        self.dynamics_linearizer =factory_from_config(dynamics_linearizer_factory_base, config_data, dynamics_linearizer_section_name)
         self.N = self.get_control_horizon()
         self.n = self.dynamics.get_state_dim()[0]
         self.m = self.get_control_dim()
@@ -40,10 +44,8 @@ class CSSMPC(MpcController):
             self.initial_control_sequence = init_ctrl_seq.reshape((self.get_control_dim(), self.get_control_horizon()))
         else:
             self.initial_control_sequence = np.tile(init_ctrl_seq.reshape((-1, 1)), (1, self.N))
-        self.target_speed = float(config_data.get(section_name, 'speed'))
-        self.x_target = np.zeros((self.n, self.N))
-        self.x_target[0, :] = self.target_speed
-        # self.x_target[0, -1] = 2
+        self.goal_traj = np.tile(np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')), dtype=np.float64).reshape((-1, 1)), (1, self.N))
+        self.goal_traj[:, -1] = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_terminal_state')), dtype=np.float64)
         self.u_range = np.asarray(ast.literal_eval((config_data.get(section_name, 'ctrl_range'))))
         self.slew_rate = np.asarray(ast.literal_eval((config_data.get(section_name, 'ctrl_slew_rate'))))
         self.prob_lvl = float(config_data.get(section_name, 'prob_lvl'))
@@ -58,7 +60,6 @@ class CSSMPC(MpcController):
         R = np.asarray(ast.literal_eval((config_data.get(section_name, 'R'))))
         R = np.diag(R)
         self.R_bar = np.kron(np.eye(self.N, dtype=int), R)
-
         self.solver = cs_solver.CSSolver(self.n, self.m, self.l, self.N, self.u_range, self.slew_rate, (False, ),
                                          mean_only=True, k_form=1, prob_lvl=self.prob_lvl, chance_const_N=self.N)
 
@@ -68,17 +69,17 @@ class CSSMPC(MpcController):
         state_cur[5:, :] = np.vstack((e_psi, e_y, s))
         us = self.initial_control_sequence.copy()
         xs = self.roll_out(state_cur, us, self.dt)
-        A, B, d = self.dynamics.linearize_dynamics(xs[:, :-1], us, dt=self.dt)
+        A, B, d = self.dynamics_linearizer.linearize_dynamics(xs[:, :-1], us, dt=self.dt)
         A = A.reshape((self.n, self.n, self.N), order='F')
         B = B.reshape((self.n, self.m, self.N), order='F')
         d = d.reshape((self.n, 1, self.N), order='F')
         D = np.zeros((self.n, self.l))
         D = np.tile(D.reshape((self.n, self.l, 1)), (1, 1, self.N))
-        A, B, d, D = self.dynamics.form_long_matrices_LTV(A, B, d, D)
+        A, B, d, D = self.dynamics_linearizer.form_long_matrices_LTV(A, B, d, D)
         sigma_0 = np.zeros((self.n, self.n))
         mu_N = np.ones((self.n, 1)) * 9999
         self.solver.populate_params(A, B, d, D, xs[:, 0], sigma_0, sigma_0, self.Q_bar, self.R_bar, us[:, 0],
-                                    self.x_target.reshape((-1, 1), order='F'), mu_N, self.track_w, K=np.zeros((self.m*self.N, self.n*self.N)))
+                                    self.goal_traj.reshape((-1, 1), order='F'), mu_N, self.track_w, K=np.zeros((self.m*self.N, self.n*self.N)))
         V, K = self.solver.solve()
         K = K.reshape((self.m * self.N, self.n * self.N))
         us = V.reshape((self.m, self.N), order='F')

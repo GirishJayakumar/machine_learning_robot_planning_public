@@ -26,3 +26,6 @@ class TestRunEnvironment(unittest.TestCase):
         trainer.train()
         print('done!')
 
+
+if __name__ == '__main__':
+    unittest.main()

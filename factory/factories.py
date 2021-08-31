@@ -13,6 +13,9 @@ def cost_evaluator_factory_base(base_type):
     if base_type == 'quadratic_cost':
         from robot_planning.environment.cost_evaluators import QuadraticCostEvaluator
         return QuadraticCostEvaluator()
+    elif base_type == 'autorally_mppi_cost_evaluator':
+        from robot_planning.environment.cost_evaluators import AutorallyMPPICostEvaluator
+        return AutorallyMPPICostEvaluator()
     else:
         raise ValueError('cost_evaluator type {} not recognized'.format(base_type))
 
@@ -81,6 +84,9 @@ def stochastic_trajectories_sampler_factory_base(base_type):
     if base_type == 'MPPI_stochastic_trajectories_sampler':
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIStochasticTrajectoriesSampler
         return MPPIStochasticTrajectoriesSampler()
+    elif base_type == 'MPPI_parallel_stochastic_trajectories_sampler_multiprocessing':
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIParallelStochasticTrajectoriesSamplerMultiprocessing
+        return MPPIParallelStochasticTrajectoriesSamplerMultiprocessing()
     else:
         raise ValueError('stochastic_trajectories_sampler type {} is not recognized'.format(base_type))
 
@@ -118,3 +124,19 @@ def configs_generator_factory_base(base_type):
         return MPPIConfigsGenerator()
     else:
         raise ValueError('config_generator type {} is not recognized'.format(base_type))
+
+
+def logger_factory_base(base_type):
+    if base_type == 'MPPI_logger':
+        from robot_planning.batch_experimentation.loggers import MPPILogger
+        return MPPILogger()
+    else:
+        raise ValueError('logger type {} is not recognized'.format(base_type))
+
+
+def dynamics_linearizer_factory_base(base_type):
+    if base_type == 'numpy_dynamics_linearizer':
+        from robot_planning.environment.dynamics_linearizer import NumpyDynamicsLinearizer
+        return NumpyDynamicsLinearizer()
+    else:
+        raise ValueError('dynamics_linearizer type {} is not recognized'.format(base_type))
