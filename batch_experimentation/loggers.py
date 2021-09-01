@@ -33,6 +33,9 @@ class Logger(object):
             os.mkdir(current_experiment_dir)
         return experiments_dir, current_experiment_dir
 
+    def shutdown(self):
+        return
+
 
 class MPPILogger(Logger):
     def __init__(self, experiment_dir=None):
@@ -125,6 +128,95 @@ class AutorallyLogger(Logger):
 
     def get_num_of_failures(self):
         return copy.deepcopy(self.number_of_failure)
+
+
+class AutorallyNpzLogger(Logger):
+    def __init__(self, experiment_dir=None, collision_checker=None, goal_checker=None):
+        Logger.__init__(self, experiment_dir)
+        self.experiments_folder_name = "Autorally_experiments"
+        self.number_of_collisions = 0
+        self.number_of_laps = 0
+        self.number_of_failure = 0
+        self.in_obstacle = False
+        self.around_goal_position = True
+        self.collision_checker = collision_checker
+        self.goal_checker = goal_checker
+        self.sim_states = np.zeros((11, 0))
+        self.crash = 0
+
+    def initialize_from_config(self, config_data, section_name):
+        Logger.initialize_from_config(self, config_data, section_name)
+        if config_data.has_option(section_name, 'goal_checker'):
+            goal_checker_section_name = config_data.get(section_name, 'goal_checker')
+            self.goal_checker = factory_from_config(goal_checker_factory_base, config_data,
+                                                      goal_checker_section_name)
+        if config_data.has_option(section_name, 'collision_checker'):
+            collision_checker_section_name = config_data.get(section_name, 'collision_checker')
+            self.collision_checker = factory_from_config(collision_checker_factory_base, config_data,
+                                                          collision_checker_section_name)
+        self.batch_code = config_data.get(section_name, 'batch_code')
+        _, current_experiment_dir = self.create_save_dir()
+        self.log_file_path = current_experiment_dir + "/" + self.experiment_name + "_log"
+
+    def create_save_dir(self):
+        experiments_dir = self.experiment_root_dir + "/" + self.experiments_folder_name
+        if not os.path.isdir(experiments_dir):
+            os.mkdir(experiments_dir)
+        current_experiment_dir = self.experiment_root_dir + "/" + self.experiments_folder_name + "/" + self.batch_code
+        if not os.path.isdir(current_experiment_dir):
+            os.mkdir(current_experiment_dir)
+        return experiments_dir, current_experiment_dir
+
+    def set_agent(self, agent):
+        self.agent = agent
+        self.in_obstacle = self.collision_checker.check(agent.get_state())
+        self.around_goal_position = self.goal_checker.check(agent.get_state())
+
+    def calculate_number_of_collisions(self, state, dynamics, collision_checker):
+        #This state is in cartesian coordinates, needs to be converted to map coordinates
+        state = self.global_to_local_coordinate_transform(state)
+        if collision_checker.check(state) and self.in_obstacle is False: # the limit should not be hard-coded
+            self.in_obstacle = True
+            self.number_of_collisions += 1
+        if not collision_checker.check(state) and self.in_obstacle is True:
+            self.in_obstacle = False
+
+    def calculate_number_of_laps(self, state, dynamics, goal_checker):
+        # This state is in cartesian coordinates, needs to be converted to map coordinates
+        # state = self.global_to_local_coordinate_transform(state, dynamics)
+        if goal_checker.check(state) and self.around_goal_position is False: # the limit should not be hard-coded
+            self.around_goal_position = True
+            self.number_of_laps += 1
+        if not goal_checker.check(state) and self.around_goal_position is True:
+            self.around_goal_position = False
+
+    def add_number_of_failure(self):
+        self.number_of_failure += 1
+
+    def log(self):
+        if self.number_of_collisions > 0 or self.number_of_failure > 1:
+            self.crash = 1
+        state = self.agent.get_state()
+        map_coords = self.global_to_local_coordinate_transform(state)[-3:]
+        self.sim_states = np.append(self.sim_states, np.vstack((state.reshape((-1, 1)), map_coords.reshape((-1, 1)))), axis=1)
+
+    def global_to_local_coordinate_transform(self, state):
+        state = copy.deepcopy(state)
+        e_psi, e_y, s = self.agent.dynamics.track.localize(np.array((state[-2], state[-1])), state[-3])
+        state[5:] = np.vstack((e_psi, e_y, s)).reshape((3,))
+        return state
+
+    def get_num_of_collisions(self):
+        return copy.deepcopy(self.number_of_collisions)
+
+    def get_num_of_laps(self):
+        return copy.deepcopy(self.number_of_laps)
+
+    def get_num_of_failures(self):
+        return copy.deepcopy(self.number_of_failure)
+
+    def shutdown(self):
+        np.savez(self.log_file_path, states=self.sim_states, crash=self.crash)
 
 
 class AutorallyMPPILogger(AutorallyLogger):
