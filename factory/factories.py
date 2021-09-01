@@ -142,6 +142,9 @@ def logger_factory_base(base_type):
     elif base_type == 'Autorally_logger':
         from robot_planning.batch_experimentation.loggers import AutorallyLogger
         return AutorallyLogger()
+    elif base_type == 'Autorally_npz_logger':
+        from robot_planning.batch_experimentation.loggers import AutorallyNpzLogger
+        return AutorallyNpzLogger()
     elif base_type == 'Autorally_MPPI_logger':
         from robot_planning.batch_experimentation.loggers import AutorallyMPPILogger
         return AutorallyMPPILogger()
