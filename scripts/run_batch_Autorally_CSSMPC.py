@@ -8,6 +8,8 @@ try:
 except ImportError:
     import configparser as ConfigParser
 import ast
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
 def run_batch_Autorally_CSSMPC(run_batch_Autorally_CSSMPC_config_path, batch_config_folder_path):
@@ -36,6 +38,7 @@ def run_single_Autorally_CSSMPC(config_data, experiment_name):
                 logger.add_number_of_failure()
                 agent1.reset_state()
                 agent1.reset_time()
+                logger.shutdown()
             logger.calculate_number_of_laps(state_next, dynamics=agent1.dynamics,
                                             goal_checker=agent1.cost_evaluator.goal_checker)
             logger.calculate_number_of_collisions(state_next, dynamics=agent1.dynamics,
@@ -46,6 +49,7 @@ def run_single_Autorally_CSSMPC(config_data, experiment_name):
             print("state: ", state_next)
             print("number of laps: ", logger.get_num_of_laps(), "number of collisions: ",
                   logger.get_num_of_collisions(), "number of controller failures: ", logger.get_num_of_failures())
+        logger.shutdown()
 
 
 if __name__ == '__main__':
