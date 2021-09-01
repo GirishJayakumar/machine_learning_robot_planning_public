@@ -9,6 +9,8 @@ try:
 except ImportError:
     import configparser as ConfigParser
 import ast
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
 def run_batch_Autorally_MPPI(run_batch_Autorally_MPPI_config_path, batch_config_folder_path):
