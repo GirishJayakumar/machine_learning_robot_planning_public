@@ -2,6 +2,7 @@ try:
     import ConfigParser
 except ImportError:
     import configparser as ConfigParser
+import os
 from robot_planning.environment.robots.simulated_robot import SimulatedRobot
 from robot_planning.factory.factories import robot_factory_base
 from robot_planning.factory.factories import renderer_factory_base
@@ -9,6 +10,7 @@ from robot_planning.factory.factories import logger_factory_base
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import goal_checker_factory_base
 import numpy as np
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
 def main():
