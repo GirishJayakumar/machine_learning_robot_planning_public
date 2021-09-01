@@ -144,11 +144,11 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
         return
 
     def render_goal(self, goal=None, **kwargs):
-        # x = goal[0]
-        # y = goal[1]
-        # radius = goal[2]
-        # circle = plt.Circle((x, y), radius, **kwargs)
-        # self._axis.add_artist(circle)
+        x = goal[0]
+        y = goal[1]
+        radius = goal[2]
+        circle = plt.Circle((x, y), radius, **kwargs, zorder=0)
+        self._axis.add_artist(circle)
         return
 
     def render_trajectories(self, trajectory_list=None, **kwargs):

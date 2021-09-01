@@ -12,7 +12,7 @@ class CollisionChecker(object):
         self.obstacles = obstacles
 
     def initialize_from_config(self, config_data, section_name):
-        raise NotImplementedError
+        pass
 
     def set_obstacles(self, obstacles):
         self.obstacles = obstacles
@@ -88,3 +88,18 @@ class BicycleModelCollisionChecker(CollisionChecker):
                     return True
         return False
 
+
+class AutorallyCollisionChecker(PointCollisionChecker):
+    def __init__(self, obstacles=None, kinematics=None):
+        CollisionChecker.__init__(self, obstacles, kinematics)
+
+    def initialize_from_config(self, config_data, section_name):
+        PointCollisionChecker.initialize_from_config(self, config_data, section_name)
+        self.track_width = config_data.getfloat(section_name, "track_width")
+        kinematics_section_name = config_data.get(section_name, 'kinematics')
+        self.kinematics = factory_from_config(kinematics_factory_base, config_data, kinematics_section_name)
+
+    def check(self, state_cur):
+        if state_cur[-2] < -self.track_width or self.track_width < state_cur[-2]:
+            return True
+        return False
