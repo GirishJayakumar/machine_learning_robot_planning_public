@@ -40,15 +40,17 @@ def run_single_Autorally_MPPI(config_data, experiment_name):
             logger.add_number_of_failure()
             agent1.reset_state()
             agent1.reset_time()
+            logger.shutdown()
         logger.calculate_number_of_laps(state_next, dynamics=agent1.dynamics,
                                         goal_checker=goal_checker_for_checking_vehicle_position)
         logger.calculate_number_of_collisions(state_next, dynamics=agent1.dynamics,
                                               collision_checker=agent1.cost_evaluator.collision_checker)
-        renderer1.render_goal(goal_checker_for_checking_vehicle_position.get_goal())
+        # renderer1.render_goal(goal_checker_for_checking_vehicle_position.get_goal())
         logger.log()
         renderer1.show()
         renderer1.clear()
         print("state: ", state_next, "cost: ", cost, "lap number: ", logger.get_num_of_laps())
+    logger.shutdown()
 
 
 if __name__ == '__main__':
