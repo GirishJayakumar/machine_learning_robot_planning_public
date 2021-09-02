@@ -24,7 +24,8 @@ from tqdm import tqdm
 class Trainer(object):
     class HyperParameters:
         def __init__(self, episode_len=None, n_episodes=None, seed=None, noise_rate=None, epsilon=None,
-                     n_eval_episodes=None, eval_per_episodes=None, eval_episode_length=None, save_per_episodes=None):
+                     n_eval_episodes=None, eval_per_episodes=None, eval_episode_length=None, save_per_episodes=None,
+                     update_per_steps=None):
             # training
             self.n_episodes = n_episodes
             self.episode_len = episode_len
@@ -32,6 +33,7 @@ class Trainer(object):
             self.noise_rate = noise_rate
             self.epsilon = epsilon
             self.save_per_episodes = save_per_episodes
+            self.update_per_steps = update_per_steps
 
             # evaluation
             self.n_eval_episodes = n_eval_episodes
@@ -46,6 +48,7 @@ class Trainer(object):
             self.eval_per_episodes = config_data.getint(section_name, 'eval_per_episodes')
             self.eval_episode_length = config_data.getint(section_name, 'eval_episode_length')
             self.save_per_episodes = config_data.getint(section_name, 'save_per_episodes')
+            self.update_per_steps = config_data.getint(section_name, 'update_per_steps')
 
             # Init exploration parameters
             self.epsilon = float(config_data.get(section_name, 'epsilon_greedy'))
@@ -80,7 +83,7 @@ class Trainer(object):
 
         # Start training
         for ep in tqdm(range(0, self.hyper_parameters.n_episodes), position=0, leave=True, desc="Training Episodes"):
-            _, observations, _ = self.env.reset()
+            _, observations, _ = self.env.reset(random=True)
 
             for t in range(self.hyper_parameters.episode_len):
                 obs_torch = list_np2list_tensor(observations)
@@ -97,7 +100,7 @@ class Trainer(object):
                 observations = deepcopy(next_observations)
 
                 # train only if buffer size is large enough
-                if self.agents[0].replay_buffer.ready():
+                if self.agents[0].replay_buffer.ready() and (t % self.hyper_parameters.update_per_steps == 0):
                     for agent in self.agents:
                         agent.train_agent()
 

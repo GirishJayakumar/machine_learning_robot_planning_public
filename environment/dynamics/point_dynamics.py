@@ -80,3 +80,6 @@ class PointDynamics(NumpySimulatedDynamics):
 
     def get_max_action(self):
         return np.array([1, 1])
+
+    def get_state_bounds(self):
+        return [self.max_x, self.max_y, self.max_vx, self.max_vy]

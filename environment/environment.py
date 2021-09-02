@@ -72,17 +72,27 @@ class Environment(object):
         states = []
         observations = []
         costs = []
-        for i in range(len(self.agent_list)):
-            if initial_states is not None:
-                initial_state = initial_states[i]
-            else:
-                initial_state = None
 
-            self.agent_list[i].reset_state(initial_state=initial_state, random=random)
-            self.agent_list[i].reset_time()
-            state = self.agent_list[i].get_state()
-            states.append(state)
+        collision_free = False
+        n_attempts = 0
+        while not collision_free:
+            for i in range(len(self.agent_list)):
+                if initial_states is not None:
+                    initial_state = initial_states[i]
+                else:
+                    initial_state = None
+
+                self.agent_list[i].reset_state(initial_state=initial_state, random=random)
+                self.agent_list[i].reset_time()
+                state = self.agent_list[i].get_state()
+                states.append(state)
             costs.append(None)
+
+            collision_free = not any([agent.cost_evaluator.collision_checker.check(agent.get_state()) for agent in self.agent_list])
+            n_attempts += 1
+            if n_attempts >= 50:
+                raise Exception("initial state cannot be randomly initialized! check parameters!")
+
         for i in range(len(self.agent_list)):
             observation = self.agent_list[i].observer.observe()
             observations.append(observation)
