@@ -22,6 +22,25 @@ class BatchDataParser:
         num_runs = len(self.crashes)
         print(num_crashes, ' crashes out of ', num_runs, ' runs = ', num_crashes/num_runs)
 
+    def print_lap_stats(self):
+        num_runs = len(self.states)
+        average_speeds = []
+        lap_times = []
+        max_speeds = []
+        dt = 0.1
+        for ii, states in enumerate(self.states):
+            average_speed = np.mean(states[0, :])
+            average_speeds.append(average_speed)
+            max_speed = np.max(states[0, :])
+            if self.crashes[ii] == 1:
+                continue
+            max_speeds.append(max_speed)
+            lap_time = len(states[-1, :]) * dt
+            lap_times.append(lap_time)
+        print('max speed: ', np.max(max_speeds))
+        print('average speed: ', np.mean(average_speeds))
+        print('average lap time: ', np.mean(lap_times))
+
     def plot_trajectories(self):
         plt.figure()
         map_file = 'environment/dynamics/autorally_dynamics/CCRF_2021-01-10.npz'
@@ -29,7 +48,11 @@ class BatchDataParser:
         plt.plot(map['X_in'], map['Y_in'], 'k')
         plt.plot(map['X_out'], map['Y_out'], 'k')
         for states in self.states:
-            plt.scatter(states[6, :], states[7, :], c=states[0, :], marker='.')
+            plt.scatter(states[6, :], states[7, :], c=states[0, :], marker='.', vmin=1, vmax=7)
+        cbar = plt.colorbar()
+        plt.xlabel('X (m)')
+        plt.ylabel('Y (m)')
+        cbar.set_label('speed (m/s)')
         plt.show()
 
 
@@ -37,4 +60,5 @@ if __name__ == '__main__':
     data_parser = BatchDataParser()
     data_parser.parse_datas()
     data_parser.print_crashes()
+    data_parser.print_lap_stats()
     data_parser.plot_trajectories()
