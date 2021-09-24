@@ -108,7 +108,7 @@ class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
     def initialize_from_config(self, config_data, section_name):
         QuadraticCostEvaluator.initialize_from_config(self, config_data, section_name)
 
-    def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
+    def evaluate(self, state_cur, actions=None, noises=None, dyna_obstacle_list=None, dynamics=None):
         map_state = self.global_to_local_coordinate_transform(state_cur, dynamics)
         error_state_right = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=2)
         error_state_left = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=1)
@@ -116,12 +116,19 @@ class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
         if actions is not None:
             actions_left = np.expand_dims(actions.T, axis=1)
             actions_right = np.expand_dims(actions.T, axis=2)
-            cost += (1/2) * actions_left @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ actions_right
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
-            if self.collision_cost is not None:
-                cost += self.collision_cost
+            if noises is not None:
+                noises_left = np.expand_dims(noises.T, axis=1)
+                noises_right = np.expand_dims(noises.T, axis=2)
+                cost += 1/2 * noises_left @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ noises_right
+                cost += (actions_left - noises_left) @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ noises_right
             else:
-                cost += 1000  # default collision cost
+                cost += (1/2) * actions_left @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ actions_right
+        # collisions =  self.collision_checker.check(state_cur)  # True for collision, False for no collision
+        # collisions = collisions.reshape((-1, 1, 1))
+        # if self.collision_cost is not None:
+        #     cost += collisions * self.collision_cost
+        # else:
+        #     cost += collisions * 1000  # default collision cost
         return cost
 
     def evaluate_terminal_cost(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
@@ -130,11 +137,12 @@ class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
         error_state_left = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=1)
         cost = (1 / 2) * error_state_left @ np.tile(np.expand_dims(self.QN, axis=0),
                                                     (state_cur.shape[1], 1, 1)) @ error_state_right
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
-            if self.collision_cost is not None:
-                cost += self.collision_cost
-            else:
-                cost += 1000  # default collision cost
+        # collisions = self.collision_checker.check(state_cur)  # True for collision, False for no collision
+        # collisions = collisions.reshape((-1, 1, 1))
+        # if self.collision_cost is not None:
+        #     cost += collisions * self.collision_cost
+        # else:
+        #     cost += collisions * 1000  # default collision cost
         return cost
 
     def global_to_local_coordinate_transform(self, state, dynamics):
