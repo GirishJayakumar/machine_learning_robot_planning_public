@@ -52,3 +52,7 @@ class PositionGoalChecker(GoalChecker):
         if np.linalg.norm(self.goal_state - pos_cur) < self.goal_radius:
             return True
         return False
+
+    def dist(self, state_cur):
+        pos_cur = np.array([state_cur[0], state_cur[1]])
+        return np.linalg.norm(self.goal_state - pos_cur)

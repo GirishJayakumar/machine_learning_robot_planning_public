@@ -74,6 +74,7 @@ class TerminalCostEvaluator(CostEvaluator):
         CostEvaluator.__init__(self, goal_checker, collision_checker)
         self.collision_cost = collision_cost
         self.goal_cost = goal_cost
+        self.dense = None
 
     def initialize_from_config(self, config_data, section_name):
         if config_data.has_option(section_name, 'collision_cost'):
@@ -88,6 +89,8 @@ class TerminalCostEvaluator(CostEvaluator):
             collision_checker_section_name = config_data.get(section_name, 'collision_checker')
             self.collision_checker = factory_from_config(collision_checker_factory_base, config_data,
                                                           collision_checker_section_name)
+        if config_data.has_option(section_name, 'dense'):
+            self.dense = config_data.getboolean(section_name, 'dense')
 
     def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None):
         cost = 0
@@ -96,9 +99,14 @@ class TerminalCostEvaluator(CostEvaluator):
                 cost += self.collision_cost
             else:
                 cost += 1000  # default collision cost
+        if self.dense:
+            cost += 10 * self.goal_checker.dist(state_cur)
+
         if self.goal_checker.check(state_cur):  # True for goal reached, False for goal not reached
             if self.goal_cost is not None:
                 cost += self.goal_cost
             else:
                 cost += -5000  # default goal cost
+
+
         return cost
