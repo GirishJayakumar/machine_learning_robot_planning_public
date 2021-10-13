@@ -11,11 +11,12 @@ from copy import deepcopy
 import ast
 
 
-class SimulatedRobot(Robot):
-    def __init__(self, dynamics=None, start_state=None, steps_per_action=None, data_type=None, cost_evaluator=None,
-                 controller=None, renderer=None):
+class AbstractRobot(Robot):
+    def __init__(self, dynamics=None, simulated_robot=None, start_state=None, steps_per_action=None, data_type=None,
+                 cost_evaluator=None, controller=None, renderer=None):
         Robot.__init__(self)
         self.dynamics = dynamics
+        self.simulated_robot = simulated_robot
         self.start_state = start_state
         self.state = start_state
         self.cost_evaluator = cost_evaluator
@@ -36,12 +37,6 @@ class SimulatedRobot(Robot):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
         else:
             self.steps_per_action = 1
-        if config_data.has_option(section_name, 'controller'):
-            controller_section_name = config_data.get(section_name, 'controller')
-            self.controller = factory_from_config(controller_factory_base, config_data, controller_section_name)
-        if config_data.has_option(section_name, 'renderer'):
-            renderer_section_name = config_data.get(section_name, 'renderer')
-            self.renderer = factory_from_config(renderer_factory_base, config_data, renderer_section_name)
         if config_data.has_option(section_name,
                                   'cost_evaluator'):  # controller may have a different cost evaluator from the robot, if we use the robot to train rl algorithms
             cost_evaluator_section_name = config_data.get(section_name, 'cost_evaluator')
@@ -50,6 +45,7 @@ class SimulatedRobot(Robot):
         if config_data.has_option(section_name, 'observer'):
             observer_section_name = config_data.get(section_name, 'observer')
             self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
+
 
     @property
     def delta_t(self):
@@ -85,10 +81,6 @@ class SimulatedRobot(Robot):
 
     def set_time(self, time):
         self.steps = time / self.dynamics.get_delta_t()
-
-    def set_goal(self, goal_state):
-        self.controller.cost_evaluator.goal_checker.set_goal(goal_state)
-        self.cost_evaluator.goal_checker.set_goal(goal_state)
 
     def reset_time(self):
         self.steps = 0
@@ -131,10 +123,6 @@ class SimulatedRobot(Robot):
 
     def render_goal(self):
         if self.renderer is not None:
-            ultimate_goal = self.cost_evaluator.goal_checker.get_ultimate_goal()
-            if ultimate_goal is not None:
-                self.renderer.render_goal(goal=ultimate_goal, **{'color': "red"})
-
             goal = self.cost_evaluator.goal_checker.get_goal()
             self.renderer.render_goal(goal=goal, **{'color': "g"})
 
@@ -168,28 +156,4 @@ class SimulatedRobot(Robot):
             state_next = self.propagate_robot(action)
             cost += self.evaluate_state_action_pair_cost(state_next, action)
         assert state_next is None, 'invalid state!'
-        return state_next, cost
-
-    def propagate_robot_with_controller(self, steps):
-        state_next = None
-        assert steps > 0
-        for step in range(steps):
-            action = self.controller.plan(state_cur=self.get_state())
-            self.render_robot_state()
-            state_next = self.dynamics.propagate(self.state, action)
-            self.set_state(state_next)
-            self.steps += 1
-        return state_next
-
-    def take_action_with_controller(self):
-        state_next = None
-        cost = 0
-        action = self.controller.plan(state_cur=self.get_state())
-        self.render_robot_state()
-        self.render_goal()
-        self.render_obstacles()
-        for _ in range(self.steps_per_action):
-            state_next = self.propagate_robot(action)
-            cost += self.evaluate_state_action_pair_cost(state_next, action)
-        assert state_next is not None, 'invalid state!'
         return state_next, cost

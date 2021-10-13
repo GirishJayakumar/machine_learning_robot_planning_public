@@ -10,7 +10,7 @@ except ImportError:
 
 
 class BicycleDynamics(NumpySimulatedDynamics):
-    def __init__(self, dynamics_type=None, data_type=None, delta_t=None, mass=None, cog_pos=None, car_length=None):
+    def __init__(self, dynamics_type=None, data_type=None, delta_t=None, mass=None, cog_pos=None, car_length=None, state_bounds=None):
         NumpySimulatedDynamics.__init__(self, dynamics_type, data_type, delta_t)
         self.dynamics_type = dynamics_type
         self.data_type = data_type
@@ -18,12 +18,14 @@ class BicycleDynamics(NumpySimulatedDynamics):
         self.mass = mass
         self.cog_pos = cog_pos
         self.car_length = car_length
+        self.state_bounds = state_bounds
 
     def initialize_from_config(self, config_data, section_name):
         NumpySimulatedDynamics.initialize_from_config(self, config_data, section_name)
         self.mass = config_data.getfloat(section_name, 'mass')
         self.cog_pos = config_data.getfloat(section_name, 'cog_pos')
         self.car_length = config_data.getfloat(section_name, 'car_length')
+        self.state_bounds = np.asarray(ast.literal_eval(config_data.get(section_name, 'state_bounds')))
 
     def propagate(self, state, action, delta_t=None):
         if state.size != 5:
@@ -62,3 +64,6 @@ class BicycleDynamics(NumpySimulatedDynamics):
 
     def get_max_action(self):
         return np.array([1,1])
+
+    def get_state_bounds(self):
+        return self.state_bounds

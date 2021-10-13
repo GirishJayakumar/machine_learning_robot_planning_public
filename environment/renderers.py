@@ -36,6 +36,7 @@ class Renderer():
     def clear(self):
         pass
 
+
 class MatplotlibRenderer(Renderer):
     def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
         Renderer.__init__(self)
@@ -66,7 +67,7 @@ class MatplotlibRenderer(Renderer):
 
     def set_range(self):
         if not self.auto_range:
-            self._axis.axis([self.xaxis_range[0], self.xaxis_range[1], self.yaxis_range[0],  self.yaxis_range[1]])
+            self._axis.axis([self.xaxis_range[0], self.xaxis_range[1], self.yaxis_range[0], self.yaxis_range[1]])
         plt.grid(True)
 
     def show(self):
@@ -140,7 +141,6 @@ class EnvMatplotlibRenderer(MatplotlibRenderer):
         radius = goal[2]
         circle = plt.Circle((x, y), radius, **kwargs)
         self._axis.add_artist(circle)
-
 
 
 class AutorallyMatplotlibRenderer(MatplotlibRenderer):

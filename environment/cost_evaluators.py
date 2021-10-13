@@ -32,9 +32,10 @@ class QuadraticCostEvaluator(CostEvaluator):
 
     def initialize_from_config(self, config_data, section_name):
         if config_data.has_option(section_name, 'collision_cost'):
-            self.collision_cost = config_data.getfloat(section_name, 'collision_cost') # collision_cost should be positive
+            self.collision_cost = config_data.getfloat(section_name,
+                                                       'collision_cost')  # collision_cost should be positive
         if config_data.has_option(section_name, 'goal_cost'):
-            self.goal_cost = config_data.getfloat(section_name, 'goal_cost') # goal_cost should be negative
+            self.goal_cost = config_data.getfloat(section_name, 'goal_cost')  # goal_cost should be negative
         if config_data.has_option(section_name, 'Q'):
             Q = np.asarray(ast.literal_eval(config_data.get(section_name, 'Q')))
             if Q.ndim == 1:
@@ -46,16 +47,17 @@ class QuadraticCostEvaluator(CostEvaluator):
         if config_data.has_option(section_name, 'goal_checker'):
             goal_checker_section_name = config_data.get(section_name, 'goal_checker')
             self.goal_checker = factory_from_config(goal_checker_factory_base, config_data,
-                                                      goal_checker_section_name)
+                                                    goal_checker_section_name)
         if config_data.has_option(section_name, 'collision_checker'):
             collision_checker_section_name = config_data.get(section_name, 'collision_checker')
             self.collision_checker = factory_from_config(collision_checker_factory_base, config_data,
-                                                          collision_checker_section_name)
+                                                         collision_checker_section_name)
 
     def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None):
-        cost = (1/2) * (state_cur - self.goal_checker.goal_state).T @ self.Q @ (state_cur - self.goal_checker.goal_state)
+        cost = (1 / 2) * (state_cur - self.goal_checker.goal_state).T @ self.Q @ (
+                    state_cur - self.goal_checker.goal_state)
         if actions is not None:
-            cost += (1/2) * actions.T @ self.R @ actions
+            cost += (1 / 2) * actions.T @ self.R @ actions
         if self.collision_checker.check(state_cur):  # True for collision, False for no collision
             if self.collision_cost is not None:
                 cost += self.collision_cost
@@ -78,17 +80,18 @@ class TerminalCostEvaluator(CostEvaluator):
 
     def initialize_from_config(self, config_data, section_name):
         if config_data.has_option(section_name, 'collision_cost'):
-            self.collision_cost = config_data.getfloat(section_name, 'collision_cost') # collision_cost should be positive
+            self.collision_cost = config_data.getfloat(section_name,
+                                                       'collision_cost')  # collision_cost should be positive
         if config_data.has_option(section_name, 'goal_cost'):
-            self.goal_cost = config_data.getfloat(section_name, 'goal_cost') # goal_cost should be negative
+            self.goal_cost = config_data.getfloat(section_name, 'goal_cost')  # goal_cost should be negative
         if config_data.has_option(section_name, 'goal_checker'):
             goal_checker_section_name = config_data.get(section_name, 'goal_checker')
             self.goal_checker = factory_from_config(goal_checker_factory_base, config_data,
-                                                      goal_checker_section_name)
+                                                    goal_checker_section_name)
         if config_data.has_option(section_name, 'collision_checker'):
             collision_checker_section_name = config_data.get(section_name, 'collision_checker')
             self.collision_checker = factory_from_config(collision_checker_factory_base, config_data,
-                                                          collision_checker_section_name)
+                                                         collision_checker_section_name)
         if config_data.has_option(section_name, 'dense'):
             self.dense = config_data.getboolean(section_name, 'dense')
 
@@ -107,6 +110,5 @@ class TerminalCostEvaluator(CostEvaluator):
                 cost += self.goal_cost
             else:
                 cost += -5000  # default goal cost
-
 
         return cost

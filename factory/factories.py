@@ -53,6 +53,9 @@ def goal_checker_factory_base(base_type):
     if base_type == 'state_space_goal_checker':
         from robot_planning.environment.goal_checker import StateSpaceGoalChecker
         return StateSpaceGoalChecker()
+    if base_type == 'flex_state_space_goal_checker':
+        from robot_planning.environment.goal_checker import FlexStateSpaceGoalChecker
+        return FlexStateSpaceGoalChecker()
     if base_type == 'position_goal_checker':
         from robot_planning.environment.goal_checker import PositionGoalChecker
         return PositionGoalChecker()
