@@ -27,6 +27,6 @@ class GaussianNoiseSampler(NoiseSampler):
         if self.mean.shape[0] is not control_dim or self.covariance.shape[0] is not control_dim:
             raise ValueError('noise dimensions and control dimensions do not match!')
         noises = np.random.multivariate_normal(self.mean, self.covariance, size=control_horizon).reshape((control_dim, control_horizon))
-        if not(noises.shape[0] is control_dim and noises.shape[1] is control_horizon):
-            raise ValueError('noise dimensionality {} is not the expected value ({}, {})'.format(noises.shape, control_dim, control_horizon))
+        # if not(noises.shape[0] is control_dim and noises.shape[1] is control_horizon):
+        #     raise ValueError('noise dimensionality {} is not the expected value ({}, {})'.format(noises.shape, control_dim, control_horizon))
         return noises

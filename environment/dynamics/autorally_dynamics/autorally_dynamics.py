@@ -243,3 +243,6 @@ class AutoRallyDynamics(NumpySimulatedDynamics):
 
     def get_max_action(self):
         return np.array([1,1])
+
+    def shutdown(self):
+        return

@@ -5,6 +5,9 @@ def dynamics_factory_base(base_type):
     elif base_type == 'autorally_dynamics_cartesian' or base_type == 'autorally_dynamics_map':
         from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics import AutoRallyDynamics
         return AutoRallyDynamics(dynamics_type=base_type)
+    elif base_type == 'autorally_dynamics_carsim':
+        from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics_carsim import AutoRallyDynamicsCarsim
+        return AutoRallyDynamicsCarsim()
     else:
         raise ValueError('dynamics type {} not recognized'.format(base_type))
 

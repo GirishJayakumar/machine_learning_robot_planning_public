@@ -128,11 +128,26 @@ class AutorallyCSSMPCConfigsGenerator(ConfigsGenerator):
         if self.template_config is None:
             raise ValueError('Missing a valid template configuration file!')
         parameters_values = []
-        for i in range(len(self.parameter_ranges)):
-            ith_parameter_range = self.parameter_ranges[i]
-            ith_parameter_values = np.linspace(ith_parameter_range[0], ith_parameter_range[1], num=self.batch_experiments_sizes[i])
-            parameters_values.append(ith_parameter_values)
-        parameters_sets = self.generate_parameters_sets(parameters_values, [], 0, [])
+        if self.parameter_ranges is None:
+            tire_B = self.template_config.get('sim_dynamics1', 'tire_B')
+            tire_C = self.template_config.get('sim_dynamics1', 'tire_C')
+            tire_D = self.template_config.get('sim_dynamics1', 'tire_D')
+            kSteering = self.template_config.get('sim_dynamics1', 'kSteering')
+            cSteering = self.template_config.get('sim_dynamics1', 'cSteering')
+            throttle_factor = self.template_config.get('sim_dynamics1', 'throttle_factor')
+            mean_parameter_set = np.array((tire_B, tire_C, tire_D, kSteering, cSteering, throttle_factor), dtype=float)
+            parameters_sets = []
+            for ii in range(100):
+                disturbances = 0.1 * np.random.randn(6)
+                parameters_set = mean_parameter_set + disturbances * mean_parameter_set
+                parameters_sets.append(list(parameters_set))
+        else:
+            for i in range(len(self.parameter_ranges)):
+                ith_parameter_range = self.parameter_ranges[i]
+                ith_parameter_values = np.linspace(ith_parameter_range[0], ith_parameter_range[1],
+                                                   num=self.batch_experiments_sizes[i])
+                parameters_values.append(ith_parameter_values)
+            parameters_sets = self.generate_parameters_sets(parameters_values, [], 0, [])
         experiment_names = []
         for set in parameters_sets:
             # Note: set[0] is tire_B value, set[1] is tire_C value, set[2] is tire_D value, set[3] is kSteering value,
@@ -180,11 +195,25 @@ class AutorallyMPPIConfigsGenerator(ConfigsGenerator):
         if self.template_config is None:
             raise ValueError('Missing a valid template configuration file!')
         parameters_values = []
-        for i in range(len(self.parameter_ranges)):
-            ith_parameter_range = self.parameter_ranges[i]
-            ith_parameter_values = np.linspace(ith_parameter_range[0], ith_parameter_range[1], num=self.batch_experiments_sizes[i])
-            parameters_values.append(ith_parameter_values)
-        parameters_sets = self.generate_parameters_sets(parameters_values, [], 0, [])
+        if self.parameter_ranges is None:
+            tire_B = self.template_config.get('sim_dynamics1', 'tire_B')
+            tire_C = self.template_config.get('sim_dynamics1', 'tire_C')
+            tire_D = self.template_config.get('sim_dynamics1', 'tire_D')
+            kSteering = self.template_config.get('sim_dynamics1', 'kSteering')
+            cSteering = self.template_config.get('sim_dynamics1', 'cSteering')
+            throttle_factor = self.template_config.get('sim_dynamics1', 'throttle_factor')
+            mean_parameter_set = np.array((tire_B, tire_C, tire_D, kSteering, cSteering, throttle_factor), dtype=float)
+            parameters_sets = []
+            for ii in range(100):
+                disturbances = 0.1 * np.random.randn(6)
+                parameters_set = mean_parameter_set + disturbances * mean_parameter_set
+                parameters_sets.append(list(parameters_set))
+        else:
+            for i in range(len(self.parameter_ranges)):
+                ith_parameter_range = self.parameter_ranges[i]
+                ith_parameter_values = np.linspace(ith_parameter_range[0], ith_parameter_range[1], num=self.batch_experiments_sizes[i])
+                parameters_values.append(ith_parameter_values)
+            parameters_sets = self.generate_parameters_sets(parameters_values, [], 0, [])
         experiment_names = []
         for set in parameters_sets:
             # Note: set[0] is tire_B value, set[1] is tire_C value, set[2] is tire_D value, set[3] is kSteering value,

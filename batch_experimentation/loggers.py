@@ -194,16 +194,16 @@ class AutorallyNpzLogger(Logger):
         self.number_of_failure += 1
 
     def log(self):
-        if self.number_of_collisions > 0 or self.number_of_failure > 1:
+        if self.number_of_collisions > 0 or self.number_of_failure > 0:
             self.crash = 1
         state = self.agent.get_state()
         map_coords = self.global_to_local_coordinate_transform(state)[-3:]
         self.sim_states = np.append(self.sim_states, np.vstack((state.reshape((-1, 1)), map_coords.reshape((-1, 1)))), axis=1)
 
     def global_to_local_coordinate_transform(self, state):
-        state = copy.deepcopy(state)
-        e_psi, e_y, s = self.agent.dynamics.track.localize(np.array((state[-2], state[-1])), state[-3])
-        state[5:] = np.vstack((e_psi, e_y, s)).reshape((3,))
+        state = state.copy().reshape((-1, 1))
+        e_psi, e_y, s = self.agent.dynamics.track.localize(np.array((state[-2, :], state[-1, :])), state[-3, :])
+        state[5:, :] = np.vstack((e_psi, e_y, s)).reshape((3, 1))
         return state
 
     def get_num_of_collisions(self):

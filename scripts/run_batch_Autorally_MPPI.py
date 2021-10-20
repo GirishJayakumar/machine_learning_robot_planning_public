@@ -33,22 +33,30 @@ def run_single_Autorally_MPPI(config_data, experiment_name):
     agent1.set_renderer(renderer=renderer1)
     goal_checker_for_checking_vehicle_position = factory_from_config(goal_checker_factory_base, config_data,
                                                                      'my_goal_checker_for_checking_vehicle_position')
-    while logger.get_num_of_laps() < 1:
-        try:
-            state_next, cost = agent1.take_action_with_controller()
-        except:
-            logger.add_number_of_failure()
-            agent1.reset_state()
-            agent1.reset_time()
-        logger.calculate_number_of_laps(state_next, dynamics=agent1.dynamics,
-                                        goal_checker=goal_checker_for_checking_vehicle_position)
-        logger.calculate_number_of_collisions(state_next, dynamics=agent1.dynamics,
-                                              collision_checker=agent1.cost_evaluator.collision_checker)
-        renderer1.render_goal(goal_checker_for_checking_vehicle_position.get_goal())
-        logger.log()
-        renderer1.show()
-        renderer1.clear()
-        print("state: ", state_next, "cost: ", cost, "lap number: ", logger.get_num_of_laps())
+    try:
+        while logger.get_num_of_laps() < 1:
+            try:
+                state_next, cost = agent1.take_action_with_controller()
+            except:
+                logger.add_number_of_failure()
+                agent1.reset_state()
+                agent1.reset_time()
+                break
+            finally:
+                logger.calculate_number_of_laps(state_next, dynamics=agent1.dynamics,
+                                                goal_checker=goal_checker_for_checking_vehicle_position)
+                logger.calculate_number_of_collisions(state_next, dynamics=agent1.dynamics,
+                                                      collision_checker=agent1.cost_evaluator.collision_checker)
+                # renderer1.render_goal(goal_checker_for_checking_vehicle_position.get_goal())
+                logger.log()
+                if logger.crash:
+                    break
+                # renderer1.show()
+                # renderer1.clear()
+                print("state: ", state_next, "cost: ", cost, "lap number: ", logger.get_num_of_laps())
+        logger.shutdown()
+    finally:
+        agent1.dynamics.shutdown()
 
 
 if __name__ == '__main__':

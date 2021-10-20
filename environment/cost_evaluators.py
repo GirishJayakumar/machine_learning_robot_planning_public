@@ -108,31 +108,46 @@ class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
     def initialize_from_config(self, config_data, section_name):
         QuadraticCostEvaluator.initialize_from_config(self, config_data, section_name)
 
-    def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
-        state_cur = copy.deepcopy(state_cur)
-        state_cur = self.global_to_local_coordinate_transform(state_cur, dynamics)
-        cost = (1/2) * (state_cur - self.goal_checker.goal_state).T @ self.Q @ (state_cur - self.goal_checker.goal_state)
+    def evaluate(self, state_cur, actions=None, noises=None, dyna_obstacle_list=None, dynamics=None):
+        map_state = self.global_to_local_coordinate_transform(state_cur, dynamics)
+        error_state_right = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=2)
+        error_state_left = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=1)
+        cost = (1/2) * error_state_left @ np.tile(np.expand_dims(self.Q, axis=0), (state_cur.shape[1], 1, 1)) @ error_state_right
         if actions is not None:
-            cost += (1/2) * actions.T @ self.R @ actions
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
-            if self.collision_cost is not None:
-                cost += self.collision_cost
+            actions_left = np.expand_dims(actions.T, axis=1)
+            actions_right = np.expand_dims(actions.T, axis=2)
+            if noises is not None:
+                noises_left = np.expand_dims(noises.T, axis=1)
+                noises_right = np.expand_dims(noises.T, axis=2)
+                cost += 1/2 * noises_left @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ noises_right
+                cost += (actions_left - noises_left) @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ noises_right
             else:
-                cost += 1000  # default collision cost
+                cost += (1/2) * actions_left @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ actions_right
+        # collisions =  self.collision_checker.check(state_cur)  # True for collision, False for no collision
+        # collisions = collisions.reshape((-1, 1, 1))
+        # if self.collision_cost is not None:
+        #     cost += collisions * self.collision_cost
+        # else:
+        #     cost += collisions * 1000  # default collision cost
         return cost
 
     def evaluate_terminal_cost(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
-        state_cur = self.global_to_local_coordinate_transform(state_cur, dynamics)
-        cost = (1/2) * (state_cur - self.goal_checker.goal_state).T @ self.QN @ (state_cur - self.goal_checker.goal_state)
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
-            if self.collision_cost is not None:
-                cost += self.collision_cost
-            else:
-                cost += 1000  # default collision cost
+        map_state = self.global_to_local_coordinate_transform(state_cur, dynamics)
+        error_state_right = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=2)
+        error_state_left = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=1)
+        cost = (1 / 2) * error_state_left @ np.tile(np.expand_dims(self.QN, axis=0),
+                                                    (state_cur.shape[1], 1, 1)) @ error_state_right
+        # collisions = self.collision_checker.check(state_cur)  # True for collision, False for no collision
+        # collisions = collisions.reshape((-1, 1, 1))
+        # if self.collision_cost is not None:
+        #     cost += collisions * self.collision_cost
+        # else:
+        #     cost += collisions * 1000  # default collision cost
         return cost
 
     def global_to_local_coordinate_transform(self, state, dynamics):
-        e_psi, e_y, s = dynamics.track.localize(np.array((state[-2], state[-1])), state[-3])
-        state[5:] = np.vstack((e_psi, e_y, s)).reshape((3,))
-        return state
+        e_psi, e_y, s = dynamics.track.localize(np.array((state[-2, :], state[-1, :])), state[-3, :])
+        new_state = state.copy()
+        new_state[5:, :] = np.vstack((e_psi, e_y, s))
+        return new_state
 

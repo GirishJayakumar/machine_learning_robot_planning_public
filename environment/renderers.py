@@ -111,6 +111,9 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
     def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None, trajectories_rendering=True):
         MatplotlibRenderer.__init__(self, xaxis_range, yaxis_range, auto_range, figure_size, figure_dpi)
         self.trajectories_rendering = trajectories_rendering
+        self.path_rendering = False
+        self.path = np.zeros((3, 0))
+        self.cbar = None
 
     def initialize_from_config(self, config_data, section_name):
         if config_data.has_option(section_name, 'trajectories_rendering'):
@@ -119,12 +122,21 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
         if config_data.has_option(section_name, 'map_file'):
             map_file = config_data.get(section_name, 'map_file')
             self.map = np.load(AUTORALLY_DYNAMICS_DIR + '/' + map_file)
+        self.path_rendering = config_data.get(section_name, 'path_rendering')
 
     def render_states(self, state_list=None, kinematics=None, **kwargs):
         for i in range(len(state_list)):
             state = state_list[i]
             circle = plt.Circle((state[-2], state[-1]), kinematics.radius, **kwargs)
             self._axis.add_artist(circle)
+        if self.path_rendering:
+            self.path = np.append(self.path, np.vstack((state[0], state[6], state[7])), axis=1)
+            pcm = self._axis.scatter(self.path[1, :], self.path[2, :], c=self.path[0, :], marker='.')
+            if self.path.shape[1] < 2:
+                self.cbar = plt.colorbar(pcm)
+                self.cbar.set_label('speed (m/s)')
+            else:
+                self.cbar.update_normal(pcm)
 
     def render_obstacles(self, obstacle_list=None, **kwargs):
         self._axis.plot(self.map['X_in'], self.map['Y_in'], 'k')

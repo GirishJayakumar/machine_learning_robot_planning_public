@@ -50,7 +50,7 @@ class PointCollisionChecker(CollisionChecker):
         for i in range(len(self.obstacles)):
             if self.obstacles_radius[i] == 0:
                 continue
-            if np.linalg.norm(self.obstacles[i] - state_cur[:2]) < self.obstacles_radius[i] + self.kinematics.get_radius():
+            if np.linalg.norm(self.obstacles[i] - state_cur[:2, :]) < self.obstacles_radius[i] + self.kinematics.get_radius():
                 return True
         if self.other_agents_list is not None:
             for agent in self.other_agents_list:
@@ -100,6 +100,11 @@ class AutorallyCollisionChecker(PointCollisionChecker):
         self.kinematics = factory_from_config(kinematics_factory_base, config_data, kinematics_section_name)
 
     def check(self, state_cur):
-        if state_cur[-2] < -self.track_width or self.track_width < state_cur[-2]:
-            return True
-        return False
+        if state_cur.ndim == 1:
+            if state_cur[-2] < -self.track_width or self.track_width < state_cur[-2]:
+                return True
+            else:
+                return False
+        else:
+            collisions = np.where((state_cur[-2, :] < -self.track_width) | (self.track_width < state_cur[-2, :]), 1, 0)
+            return collisions

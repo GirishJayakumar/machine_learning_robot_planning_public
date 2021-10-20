@@ -58,7 +58,7 @@ class CSSMPC(MpcController):
 
     def plan(self, state_cur):
         state_cur = state_cur.reshape((-1, 1))
-        e_psi, e_y, s = self.dynamics.track.localize(np.array((state_cur[-2, 0], state_cur[-1, 0])), state_cur[-3, 0])
+        e_psi, e_y, s = self.dynamics.track.localize(np.array((state_cur[-2, :], state_cur[-1, :])), state_cur[-3, :])
         state_cur[5:, :] = np.vstack((e_psi, e_y, s))
         us = self.initial_control_sequence.copy()
         xs = self.roll_out(state_cur, us, self.dt)
