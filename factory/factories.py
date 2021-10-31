@@ -132,5 +132,8 @@ def dynamics_linearizer_factory_base(base_type):
     if base_type == 'numpy_dynamics_linearizer':
         from robot_planning.environment.dynamics_linearizer import NumpyDynamicsLinearizer
         return NumpyDynamicsLinearizer()
+    elif base_type == 'ccmppi_numpy_dynamics_linearizer':
+        from robot_planning.environment.dynamics_linearizer import CCMPPINumpyDynamicsLinearizer
+        return CCMPPINumpyDynamicsLinearizer()
     else:
         raise ValueError('dynamics_linearizer type {} is not recognized'.format(base_type))

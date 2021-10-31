@@ -64,7 +64,7 @@ class CSSMPC(MpcController):
         state_cur = state_cur.reshape((-1, 1))
         us = self.initial_control_sequence.copy()
         xs = self.roll_out(state_cur, us, self.dt)
-        A, B, d = self.dynamics_linearizer.linearize_dynamics(xs[:, :-1], us, dt=self.dt) # TODO: use dynamics_linearizer
+        A, B, d = self.dynamics_linearizer.linearize_dynamics(xs[:, :-1], us, dt=self.dt)
         A = A.reshape((self.n, self.n, self.N), order='F')
         B = B.reshape((self.n, self.m, self.N), order='F')
         d = d.reshape((self.n, 1, self.N), order='F')
