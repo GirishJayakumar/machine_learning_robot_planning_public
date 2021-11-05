@@ -26,7 +26,7 @@ class TestRunMPPI(unittest.TestCase):
         agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')
         renderer1 = factory_from_config(renderer_factory_base, config_data, 'renderer1')
         agent1.set_renderer(renderer=renderer1)
-        while not agent1.cost_evaluator.goal_checker.check(agent1.state):
+        while not agent1.cost_evaluator.goal_checker.check(agent1.state.reshape((-1, 1))):
             state_next, cost = agent1.take_action_with_controller()
             renderer1.show()
             renderer1.clear()
