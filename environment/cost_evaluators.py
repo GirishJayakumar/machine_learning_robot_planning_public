@@ -70,7 +70,7 @@ class QuadraticCostEvaluator(CostEvaluator):
         cost = (1/2) * (state_cur - self.goal_checker.goal_state).T @ self.Q @ (state_cur - self.goal_checker.goal_state)
         if actions is not None:
             cost += (1/2) * actions.T @ self.R @ actions
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
+        if self.collision_checker.check(state_cur.reshape((-1, 1))):  # True for collision, False for no collision
             if self.collision_cost is not None:
                 cost += self.collision_cost
             else:
@@ -88,7 +88,7 @@ class QuadraticCostEvaluator(CostEvaluator):
                     state_cur - self.goal_checker.goal_state)
         if actions is not None:
             cost += (1 / 2) * actions.T @ self.R @ actions
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
+        if self.collision_checker.check(state_cur.reshape((-1, 1))):  # True for collision, False for no collision
             if self.collision_cost is not None:
                 cost += self.collision_cost
             else:

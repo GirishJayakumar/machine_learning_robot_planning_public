@@ -27,7 +27,7 @@ class StateSpaceGoalChecker(GoalChecker):
 
     def initialize_from_config(self, config_data, section_name):
         GoalChecker.initialize_from_config(self, config_data, section_name)
-        self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')))
+        self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state'))).reshape((-1, 1))
         self.goal_radius = config_data.getfloat(section_name, 'goal_radius')
 
     def get_goal(self):
