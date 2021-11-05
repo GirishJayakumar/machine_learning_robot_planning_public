@@ -63,7 +63,7 @@ class AutoRallyDynamics(NumpySimulatedDynamics):
         track_path = AUTORALLY_DYNAMICS_DIR + "/" + track_file_name
         self.track = map_coords.MapCA(track_path)
 
-    def propagate(self, state, control, delta_t=None):
+    def propagate(self, state, control, delta_t=None, cartesian=False):
         state = state.copy().T
         input = control.copy().T
         m_Vehicle_m = self.mass
@@ -99,7 +99,7 @@ class AutoRallyDynamics(NumpySimulatedDynamics):
         wz = state[:, 2]
         wF = state[:, 3]
         wR = state[:, 4]
-        if self.cartesian:
+        if self.cartesian or cartesian:
             psi = state[:, 5]
             X = state[:, 6]
             Y = state[:, 7]
@@ -196,7 +196,7 @@ class AutoRallyDynamics(NumpySimulatedDynamics):
                 next_state[:, 4] = wR + deltaT * self.throttle_nn(input_tensor).detach().numpy().flatten()
             else:
                 next_state[:, 4] = T  # wR + deltaT * (m_Vehicle_kTorque * (T-wR) - m_Vehicle_rR * fRx) / m_Vehicle_IwR
-            if self.cartesian:
+            if self.cartesian or cartesian:
                 next_state[:, 5] = psi + deltaT * wz
                 next_state[:, 6] = X + deltaT * (np.cos(psi) * vx - np.sin(psi) * vy)
                 next_state[:, 7] = Y + deltaT * (np.sin(psi) * vx + np.cos(psi) * vy)
@@ -219,7 +219,7 @@ class AutoRallyDynamics(NumpySimulatedDynamics):
             wz = next_state[:, 2]
             wF = next_state[:, 3]
             wR = next_state[:, 4]
-            if self.cartesian:
+            if self.cartesian or cartesian:
                 psi = next_state[:, 5]
                 X = next_state[:, 6]
                 Y = next_state[:, 7]
