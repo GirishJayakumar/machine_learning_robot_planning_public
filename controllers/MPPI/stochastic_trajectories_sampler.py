@@ -144,9 +144,9 @@ class MPPIParallelStochasticTrajectoriesSamplerMultiprocessing(StochasticTraject
                 u = noises
             cost = 0
             for j in range(control_horizon - 1):
-                cost += cost_evaluator.evaluate(state_cur, u[:, j], dynamics=dynamics)
+                cost += cost_evaluator.evaluate(state_cur.reshape((-1, 1)), u[:, j:j+1], dynamics=dynamics)
                 state_cur = dynamics.propagate(state_cur, u[:, j])
                 trajectory[:, j + 1] = state_cur
-            cost += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
+            cost += cost_evaluator.evaluate_terminal_cost(state_cur.reshape((-1, 1)), dynamics=dynamics)
             results.put([trajectory, u, cost])
             noises_queue.task_done()
