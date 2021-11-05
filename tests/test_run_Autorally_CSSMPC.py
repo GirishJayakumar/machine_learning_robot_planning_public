@@ -12,7 +12,7 @@ import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 
-class TestRunBatchMPPI(unittest.TestCase):
+class TestRunCSSMPC(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print("setUpClass")
