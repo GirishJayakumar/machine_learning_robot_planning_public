@@ -39,7 +39,7 @@ class TestRunAutorallyMPPI(unittest.TestCase):
             renderer1.render_goal(goal_checker_for_checking_vehicle_position.get_goal())
             logger.log()
             if logger.crash == 1:
-                break
+                raise RuntimeError
             renderer1.show()
             renderer1.clear()
             print(state_next, "    ", cost)
