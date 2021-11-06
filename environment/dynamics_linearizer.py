@@ -21,7 +21,7 @@ class DynamicsLinearizer():
         self.dynamics = dynamics
         self.n = self.dynamics.get_state_dim()[0]
         self.m = self.dynamics.get_action_dim()[0]
-        self.l = self.n  # TODO: Ji:what is self.l?
+        self.l = self.n  # self.l is the first dimension of the control B matrix. The number of states affected by the control
 
     def set_delta_x(self, delta_x):
         self.delta_x = delta_x
@@ -237,7 +237,6 @@ class CCMPPINumpyDynamicsLinearizer(DynamicsLinearizer):
         nominal_state = np.array(nominal_state).copy()
         nominal_ctrl = np.array(nominal_ctrl).copy()
         epsilon = 1e-2
-
         # A = df/dx
         A = np.zeros((self.n, self.n), dtype=np.float)
         # find A
@@ -245,13 +244,10 @@ class CCMPPINumpyDynamicsLinearizer(DynamicsLinearizer):
             # d x / d x_i, ith row in A
             x_l = nominal_state.copy()
             x_l[i] -= epsilon
-
             x_post_l = self.dynamics.propagate(x_l, nominal_ctrl, dt)
-
             x_r = nominal_state.copy()
             x_r[i] += epsilon
-            x_post_r = self.dynamics.propagate(x_l, nominal_ctrl, dt)
-
+            x_post_r = self.dynamics.propagate(x_r, nominal_ctrl, dt)
             A[:, i] += (x_post_r.flatten() - x_post_l.flatten()) / (2 * epsilon)
 
         # B = df/du

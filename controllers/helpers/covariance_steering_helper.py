@@ -5,7 +5,7 @@ import cvxpy as cp
 import ast
 
 
-class CovarianceSteeringHelper():
+class CvxpyCovarianceSteeringHelper():
     def __init__(self, state_dim=None, control_dim=None, dynamics_linearizer=None):
         self.n = state_dim
         self.m = control_dim
@@ -23,19 +23,19 @@ class CovarianceSteeringHelper():
         self.n = self.dynamics_linearizer.n
         self.m = self.dynamics_linearizer.m
 
-    def covariance_control(self, state, ref_state_vec, ref_ctrl_vec, return_sx=False):
+    def covariance_control(self, state, ref_state_vec, ref_ctrl_vec, return_sx=False, Sigma_epsilon=np.asarray([[0.49, 0.0], [0.0, 0.1218]])):
         n = ref_state_vec.shape[1]
         m = ref_ctrl_vec.shape[1]
         N = ref_ctrl_vec.shape[0]
 
         As, Bs, ds = self.dynamics_linearizer.linearize_dynamics(ref_state_vec, ref_ctrl_vec)
-        A, B, C, d, D = self.dynamics_linearizer.make_batch_dynamics(As, Bs, ds) #TODO: set Sigma_epsilon = self.sigma_epsilon in the input arguments
+        A, B, C, d, D = self.dynamics_linearizer.make_batch_dynamics(As, Bs, ds, Sigma_epsilon=Sigma_epsilon) #TODO: set Sigma_epsilon = self.sigma_epsilon in the input arguments
 
         # cost matrix
         # soft constraint Q matrix
         # TODO: make the costs Q, R hyperparameters
         Q_bar = np.zeros([(N + 1) * self.n, (N + 1) * self.n])
-        Q_bar[-self.n:, -self.n:] = np.eye(self.n) * 3000
+        Q_bar[-self.n:, -self.n:] = np.eye(self.n) * 10
 
         R = np.eye(m)
         R_bar = np.kron(np.eye(N, dtype=int), R)
