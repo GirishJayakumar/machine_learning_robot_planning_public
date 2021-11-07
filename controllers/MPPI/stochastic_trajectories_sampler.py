@@ -29,7 +29,7 @@ class StochasticTrajectoriesSampler():
         self.number_of_trajectories = number_of_trajectories
 
 
-class MPPIStochasticTrajectoriesSamplerSlow(StochasticTrajectoriesSampler):
+class MPPIStochasticTrajectoriesSamplerSlowLoop(StochasticTrajectoriesSampler):
     def __init__(self, number_of_trajectories=None, uncontrolled_trajectories_portion=None, noise_sampler=None):
         StochasticTrajectoriesSampler.__init__(self, number_of_trajectories, uncontrolled_trajectories_portion, noise_sampler)
 

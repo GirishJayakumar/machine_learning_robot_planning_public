@@ -47,10 +47,11 @@ class PointCollisionChecker(CollisionChecker):
         return obstacle_list
 
     def check(self, state_cur):  # True for collision, False for no collision
+        state_cur = np.squeeze(state_cur)
         for i in range(len(self.obstacles)):
             if self.obstacles_radius[i] == 0:
                 continue
-            if np.linalg.norm(self.obstacles[i] - state_cur[:2, :]) < self.obstacles_radius[i] + self.kinematics.get_radius():
+            if np.linalg.norm(self.obstacles[i] - state_cur[:2]) < self.obstacles_radius[i] + self.kinematics.get_radius():
                 return True
         if self.other_agents_list is not None:
             for agent in self.other_agents_list:
@@ -77,6 +78,7 @@ class BicycleModelCollisionChecker(CollisionChecker):
         self.other_agents_list = None
 
     def check(self, state_cur):  # True for collision, False for no collision
+        state_cur = np.squeeze(state_cur)
         vertex_list = self.kinematics.compute_rectangle_vertices_from_state(state_cur)
         for vertex in vertex_list:
             for i in range(len(self.obstacles)):

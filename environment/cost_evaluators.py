@@ -67,10 +67,12 @@ class QuadraticCostEvaluator(CostEvaluator):
                                                           collision_checker_section_name)
 
     def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
+        if state_cur.ndim == 1:
+            state_cur = state_cur.reshape((-1, 1))
         cost = (1/2) * (state_cur - self.goal_checker.goal_state).T @ self.Q @ (state_cur - self.goal_checker.goal_state)
         if actions is not None:
             cost += (1/2) * actions.T @ self.R @ actions
-        if self.collision_checker.check(state_cur.reshape((-1, 1))):  # True for collision, False for no collision
+        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
             if self.collision_cost is not None:
                 cost += self.collision_cost
             else:
@@ -83,12 +85,14 @@ class QuadraticCostEvaluator(CostEvaluator):
         return cost
 
     def evaluate_terminal_cost(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
+        if state_cur.ndim == 1:
+            state_cur = state_cur.reshape((-1, 1))
         # evaluate cost of the final step of the horizon
         cost = (1 / 2) * (state_cur - self.goal_checker.goal_state).T @ self.QN @ (
                     state_cur - self.goal_checker.goal_state)
         if actions is not None:
             cost += (1 / 2) * actions.T @ self.R @ actions
-        if self.collision_checker.check(state_cur.reshape((-1, 1))):  # True for collision, False for no collision
+        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
             if self.collision_cost is not None:
                 cost += self.collision_cost
             else:
