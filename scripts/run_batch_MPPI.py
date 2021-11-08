@@ -22,7 +22,7 @@ def run_batch_MPPI(run_batch_MPPI_config_path, batch_config_folder_path):
         single_experiment_config_data.read(single_experiment_config_path)
         agent1 = factory_from_config(robot_factory_base, single_experiment_config_data, 'agent1')
         agent1.set_renderer(renderer=None)
-        while not agent1.cost_evaluator.goal_checker.check(agent1.state):
+        while not agent1.cost_evaluator.goal_checker.check(agent1.state.reshape((-1, 1))):
             state_next, cost = agent1.take_action_with_controller()
         print("goal reached!")
 
@@ -41,17 +41,17 @@ def run_batch_MPPI_with_rendering_and_saving(run_batch_MPPI_config_path, batch_c
         renderer1 = factory_from_config(renderer_factory_base, single_experiment_config_data, 'renderer1')
         agent1 = factory_from_config(robot_factory_base, single_experiment_config_data, 'agent1')
         agent1.set_renderer(renderer=renderer1)
-        while not agent1.cost_evaluator.goal_checker.check(agent1.state):
+        logger.set_experiment_name(experiment_name)
+        while not agent1.cost_evaluator.goal_checker.check(agent1.state.reshape((-1, 1))):
             state_next, cost = agent1.take_action_with_controller()
             time = agent1.get_time()
-            logger.set_experiment_name(experiment_name)
             logger.save_fig(renderer=renderer1, time=time)
             renderer1.clear()
         print("goal reached!")
 
 
 if __name__ == '__main__':
-    generate_batch_config_path = "configs/generate_batch_configs.cfg"
+    generate_batch_config_path = "configs/MPPI_generate_batch_configs.cfg"
     template_config_path = "configs/run_MPPI.cfg"
     generate_batch_configs(generate_batch_config_path, template_config_path)
     run_batch_MPPI_config_path = "configs/run_batch_MPPI.cfg"
