@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 class SimulatedDynamics(object):
@@ -42,3 +43,14 @@ class NumpySimulatedDynamics(SimulatedDynamics):
     def propagate(self, state, action, delta_t=None):
         raise NotImplementedError
 
+
+class PytorchSimulatedDynamics(SimulatedDynamics):
+    def __init__(self, dynamics_type=None, data_type=None, delta_t=None):
+        SimulatedDynamics.__init__(self, dynamics_type, data_type, delta_t)
+        self.data_type = torch.tensor
+
+    def initialize_from_config(self, config_data, section_name):
+        SimulatedDynamics.initialize_from_config(self, config_data, section_name)
+
+    def propagate(self, state, action, delta_t=None):
+        raise NotImplementedError
