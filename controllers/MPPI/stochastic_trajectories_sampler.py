@@ -77,8 +77,8 @@ class MPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
         state_start = state_cur.copy()
         costs = np.zeros((self.number_of_trajectories, 1, 1))
         state_cur = np.tile(state_start.reshape((-1, 1)), (1, self.number_of_trajectories))
-        trajectories = np.zeros((state_cur.shape[0], control_horizon, self.number_of_trajectories))
-        trajectories[:, 0, :] = state_cur
+        trajectories = np.zeros((self.number_of_trajectories, state_cur.shape[0], control_horizon))
+        trajectories[:, :, 0] = np.swapaxes(state_cur, 0, 1)
         noises = self.noise_sampler.sample(control_dim, (control_horizon - 1) * self.number_of_trajectories)
         noises = noises.reshape((control_dim, (control_horizon - 1), self.number_of_trajectories))
         num_controlled_trajectories = int((1 - self.uncontrolled_trajectories_portion) * self.number_of_trajectories)
@@ -88,10 +88,31 @@ class MPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
         for j in range(control_horizon-1):
             costs += cost_evaluator.evaluate(state_cur, us[:, j, :], noises[:, j, :], dynamics=dynamics)
             state_cur = dynamics.propagate(state_cur, us[:, j, :])
-            trajectories[:, j+1, :] = state_cur
+            trajectories[:, :, j+1] = np.swapaxes(state_cur, 0, 1)
         costs += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
         us = np.moveaxis(us, 2, 0)
         return trajectories, us, costs
+
+    # def sample(self, state_cur, v, control_horizon, control_dim, dynamics, cost_evaluator):
+    #     #  state_cur is the current state, v is the nominal control sequence
+    #     state_start = state_cur.copy()
+    #     costs = np.zeros((self.number_of_trajectories, 1, 1))
+    #     state_cur = np.tile(state_start.reshape((-1, 1)), (1, self.number_of_trajectories))
+    #     trajectories = np.zeros((state_cur.shape[0], control_horizon, self.number_of_trajectories))
+    #     trajectories[:, 0, :] = state_cur
+    #     noises = self.noise_sampler.sample(control_dim, (control_horizon - 1) * self.number_of_trajectories)
+    #     noises = noises.reshape((control_dim, (control_horizon - 1), self.number_of_trajectories))
+    #     num_controlled_trajectories = int((1 - self.uncontrolled_trajectories_portion) * self.number_of_trajectories)
+    #     us = np.zeros((v.shape[0], v.shape[1], self.number_of_trajectories))
+    #     us[:, :, :num_controlled_trajectories] = np.expand_dims(v, axis=2)
+    #     us += noises
+    #     for j in range(control_horizon-1):
+    #         costs += cost_evaluator.evaluate(state_cur, us[:, j, :], noises[:, j, :], dynamics=dynamics)
+    #         state_cur = dynamics.propagate(state_cur, us[:, j, :])
+    #         trajectories[:, j+1, :] = state_cur
+    #     costs += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
+    #     us = np.moveaxis(us, 2, 0)
+    #     return trajectories, us, costs
 
 
 class MPPIParallelStochasticTrajectoriesSamplerMultiprocessing(StochasticTrajectoriesSampler):
@@ -158,14 +179,15 @@ class CCMPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
         self.covariance_steering_helper = factory_from_config(covariance_steering_helper_factory_base, config_data,
                                                               covariance_steering_helper_section_name)
 
+
     def sample(self, state_cur, v, control_horizon, control_dim, dynamics, cost_evaluator):
 
         #  state_cur is the current state, v is the nominal control sequence
         state_start = state_cur.copy()
         costs = np.zeros((self.number_of_trajectories, 1, 1))
         state_cur = np.tile(state_start.reshape((-1, 1)), (1, self.number_of_trajectories))
-        trajectories = np.zeros((state_cur.shape[0], control_horizon, self.number_of_trajectories))
-        trajectories[:, 0, :] = state_cur
+        trajectories = np.zeros((self.number_of_trajectories, state_cur.shape[0], control_horizon))
+        trajectories[:, :, 0] = np.swapaxes(state_cur, 0, 1)
         noises = self.noise_sampler.sample(control_dim, (control_horizon - 1) * self.number_of_trajectories)
         noises = noises.reshape((control_dim, (control_horizon - 1), self.number_of_trajectories))
         num_controlled_trajectories = int((1 - self.uncontrolled_trajectories_portion) * self.number_of_trajectories)
@@ -180,19 +202,8 @@ class CCMPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
                                                                                             ref_ctrl_vec=v.T,
                                                                                             return_sx=True,
                                                                                             Sigma_epsilon=self.noise_sampler.covariance)
-        ## TODO: uncomment this to activate the covariance controlled trajectories only
-        # y = np.zeros((self.number_of_trajectories, state_start.shape[0], 1))
-        # TODO: uncomment this to activate the uncontrolled trajectories
         y = np.zeros((num_controlled_trajectories, state_start.shape[0], 1))
         for j in range(control_horizon-1):
-            ## TODO: uncomment this to activate the covariance controlled trajectories only
-            # K_aug = np.tile(Ks[j, :, :], (self.number_of_trajectories, 1, 1))
-            # us[:, j:j + 1, :] = us[:, j:j + 1, :] + (K_aug @ y).reshape(us[:, j:j+1, :].shape)
-            # A_aug = np.tile(As[j, :, :], (self.number_of_trajectories, 1, 1))
-            # B_aug = np.tile(Bs[j, :, :], (self.number_of_trajectories, 1, 1))
-            # noises_aug = noises[:, j, :].reshape((self.number_of_trajectories, noises[:, j, :].shape[0], 1))
-            # y = A_aug @ y + B_aug @ noises_aug
-            # TODO: uncomment this to activate the uncontrolled trajectories
             K_aug = np.tile(Ks[j, :, :], (num_controlled_trajectories, 1, 1))
             us[:, j:j + 1, :num_controlled_trajectories] = us[:, j:j + 1, :num_controlled_trajectories] + (K_aug @ y).reshape(us[:, j:j+1, :num_controlled_trajectories].shape)
             A_aug = np.tile(As[j, :, :], (num_controlled_trajectories, 1, 1))
@@ -202,7 +213,7 @@ class CCMPPIStochasticTrajectoriesSampler(StochasticTrajectoriesSampler):
 
             costs += cost_evaluator.evaluate(state_cur, us[:, j, :], noises[:, j, :], dynamics=dynamics)
             state_cur = dynamics.propagate(state_cur, us[:, j, :])
-            trajectories[:, j+1, :] = state_cur
+            trajectories[:, :, j+1] = np.swapaxes(state_cur, 0, 1)
         costs += cost_evaluator.evaluate_terminal_cost(state_cur, dynamics=dynamics)
         us = np.moveaxis(us, 2, 0)
         return trajectories, us, costs
