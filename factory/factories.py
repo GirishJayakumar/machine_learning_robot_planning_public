@@ -99,6 +99,9 @@ def stochastic_trajectories_sampler_factory_base(base_type):
     if base_type == 'MPPI_stochastic_trajectories_sampler':
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIStochasticTrajectoriesSampler
         return MPPIStochasticTrajectoriesSampler()
+    elif base_type == 'CCMPPI_stochastic_trajectories_sampler_slow_loop':
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import CCMPPIStochasticTrajectoriesSamplerSLowLoop
+        return CCMPPIStochasticTrajectoriesSamplerSLowLoop()
     elif base_type == 'CCMPPI_stochastic_trajectories_sampler':
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import CCMPPIStochasticTrajectoriesSampler
         return CCMPPIStochasticTrajectoriesSampler()

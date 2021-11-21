@@ -238,7 +238,7 @@ class CCMPPINumpyDynamicsLinearizer(DynamicsLinearizer):
         nominal_ctrl = np.array(nominal_ctrl).copy()
         epsilon = 1e-2
         # A = df/dx
-        A = np.zeros((self.n, self.n), dtype=np.float)
+        A = np.zeros((self.n, self.n), dtype=float)
         # find A
         for i in range(self.n):
             # d x / d x_i, ith row in A
@@ -251,7 +251,7 @@ class CCMPPINumpyDynamicsLinearizer(DynamicsLinearizer):
             A[:, i] += (x_post_r.flatten() - x_post_l.flatten()) / (2 * epsilon)
 
         # B = df/du
-        B = np.zeros((self.n, self.m), dtype=np.float)
+        B = np.zeros((self.n, self.m), dtype=float)
         # find B
         for i in range(self.m):
             # d x / d u_i, ith row in B
