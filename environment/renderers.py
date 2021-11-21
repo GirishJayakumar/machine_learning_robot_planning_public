@@ -189,20 +189,6 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
         self._axis.add_artist(circle)
         return
 
-    # def render_trajectories(self, trajectory_list=None, **kwargs):
-    #     start = time.time()
-    #     trajectory_list = np.asarray(trajectory_list)
-    #     if self.trajectories_rendering is True:
-    #         for trajectory in trajectory_list:
-    #             previous_state = trajectory[:, 0]
-    #             for i in range(1, trajectory.shape[1]):
-    #                 state = trajectory[:, i]
-    #                 line, = self._axis.plot([state[-2], previous_state[-2]], [state[-1], previous_state[-1]], **kwargs)
-    #                 previous_state = state
-    #     else:
-    #         pass
-    #     print("timing: ", time.time() - start)
-
     def render_trajectories(self, trajectory_list=None, **kwargs):
         trajectory_list = np.asarray(trajectory_list)
         if self.trajectories_rendering is True:
