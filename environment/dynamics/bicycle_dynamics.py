@@ -25,7 +25,8 @@ class BicycleDynamics(NumpySimulatedDynamics):
         self.mass = config_data.getfloat(section_name, 'mass')
         self.cog_pos = config_data.getfloat(section_name, 'cog_pos')
         self.car_length = config_data.getfloat(section_name, 'car_length')
-        self.state_bounds = np.asarray(ast.literal_eval(config_data.get(section_name, 'state_bounds')))
+        if config_data.has_option(section_name, 'state_bounds'):
+            self.state_bounds = np.asarray(ast.literal_eval(config_data.get(section_name, 'state_bounds')))
 
     def propagate(self, state, action, delta_t=None):
         if state.size != 5:
