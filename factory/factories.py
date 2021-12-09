@@ -5,7 +5,9 @@ def dynamics_factory_base(base_type):
     if base_type == 'point_dynamics':
         from robot_planning.environment.dynamics.point_dynamics import PointDynamics
         return PointDynamics()
-
+    if base_type == 'abstract_dynamics':
+        from robot_planning.environment.dynamics.abstract_dynamics import AbstractDynamics
+        return AbstractDynamics()
     if base_type == 'autorally_dynamics':
         from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics import AutoRallyDynamics
         return AutoRallyDynamics()
@@ -67,6 +69,9 @@ def robot_factory_base(base_type):
     if base_type == 'simulated_robot':
         from robot_planning.environment.robots.simulated_robot import SimulatedRobot
         return SimulatedRobot()
+    if base_type == "abstract_robot":
+        from robot_planning.environment.robots.abstract_robot import AbstractRobot
+        return AbstractRobot()
     else:
         raise ValueError('robot type {} is not recognized'.format(base_type))
 
