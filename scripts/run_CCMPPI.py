@@ -11,18 +11,20 @@ import numpy as np
 
 
 def main():
-    config_path = "configs/test_run_CSSMPC.cfg"
+    config_path = "configs/run_CCMPPI.cfg"
     config_data = ConfigParser.ConfigParser()
     config_data.read(config_path)
     agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')
     renderer1 = factory_from_config(renderer_factory_base, config_data, 'renderer1')
+    logger = factory_from_config(logger_factory_base, config_data, 'logger')
     agent1.set_renderer(renderer=renderer1)
     while not agent1.cost_evaluator.goal_checker.check(agent1.state):
-        state_next, _ = agent1.take_action_with_controller()
+        state_next, cost = agent1.take_action_with_controller()
         renderer1.show()
         time = agent1.get_time()
+        logger.save_fig(renderer=renderer1, time=time)
         renderer1.clear()
-        print(state_next)
+        print(state_next, "    ", cost)
 
 
 if __name__ == '__main__':

@@ -13,6 +13,6 @@ def generate_batch_configs(config_path, template_config_path):
 
 
 if __name__ == '__main__':
-    config_path = "configs/generate_batch_configs.cfg"
-    template_config_path = "configs/run_MPPI.cfg"
+    config_path = "configs/Autorally_CSSMPC_generate_batch_configs.cfg"
+    template_config_path = "configs/run_Autorally_CSSMPC.cfg"
     generate_batch_configs(config_path, template_config_path)

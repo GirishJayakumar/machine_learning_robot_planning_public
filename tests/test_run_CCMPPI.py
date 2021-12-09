@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 
 
-class TestRunMPPI(unittest.TestCase):
+class TestRunCCMPPI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print("setUpClass")
@@ -20,7 +20,7 @@ class TestRunMPPI(unittest.TestCase):
         print("tearDownClass")
 
     def test_run_MPPI(self):
-        config_path = "configs/test_run_MPPI.cfg"
+        config_path = "configs/test_run_CCMPPI.cfg"
         config_data = ConfigParser.ConfigParser()
         config_data.read(config_path)
         agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')

@@ -1,3 +1,5 @@
+import os
+
 try:
     import ConfigParser
 except ImportError:
@@ -23,15 +25,19 @@ class TestRunBatchMPPI(unittest.TestCase):
         print("tearDownClass")
 
     def test_run_batch_MPPI(self):
-        generate_batch_config_path = "configs/test_generate_batch_configs.cfg"
+        generate_batch_config_path = "configs/test_MPPI_generate_batch_configs.cfg"
         template_config_path = "configs/test_run_MPPI.cfg"
-        generate_batch_configs(generate_batch_config_path, template_config_path)
         run_batch_MPPI_config_path = "configs/run_batch_MPPI.cfg"
         batch_config_folder_path = "configs/batch_configs"
+        try:
+            os.mkdir(batch_config_folder_path)
+        except FileExistsError:
+            pass
+        generate_batch_configs(generate_batch_config_path, template_config_path)
         run_batch_MPPI(run_batch_MPPI_config_path, batch_config_folder_path)
 
     def test_run_batch_MPPI_with_rendering_and_saving(self):
-        generate_batch_config_path = "configs/test_generate_batch_configs.cfg"
+        generate_batch_config_path = "configs/test_MPPI_generate_batch_configs.cfg"
         template_config_path = "configs/test_run_MPPI.cfg"
         generate_batch_configs(generate_batch_config_path, template_config_path)
         run_batch_MPPI_config_path = "configs/run_batch_MPPI.cfg"
