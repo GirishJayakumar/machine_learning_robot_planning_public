@@ -25,7 +25,7 @@ def main():
         logger.save_fig(renderer=renderer1, time=time)
         renderer1.clear()
         print(state_next, "    ", cost)
-        # agent1.set_goal(np.array([10.0 + 0.2 * time, 0.0, 0.0, 0.0, 5.0]))
+        agent1.set_goal(np.array([10.0 + 2 * time, 0.0, 0.0, 0.0, 1.0]))
 
 
 if __name__ == '__main__':

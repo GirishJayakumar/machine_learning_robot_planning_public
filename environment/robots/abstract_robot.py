@@ -4,6 +4,7 @@ from robot_planning.factory.factories import cost_evaluator_factory_base
 from robot_planning.factory.factories import controller_factory_base
 from robot_planning.factory.factories import renderer_factory_base
 from robot_planning.factory.factories import observer_factory_base
+from robot_planning.factory.factories import robot_factory_base
 from robot_planning.environment.robots.base_robot import Robot
 import numpy as np
 import copy
@@ -12,8 +13,8 @@ import ast
 
 
 class AbstractRobot(Robot):
-    def __init__(self, dynamics=None, simulated_robot=None, start_state=None, steps_per_action=None, data_type=None,
-                 cost_evaluator=None, controller=None, renderer=None):
+    def __init__(self, dynamics=None, simulated_robot=None, start_state=None, steps_per_action=None,
+                 abstract_action_horizon=None, data_type=None, cost_evaluator=None, controller=None, renderer=None):
         Robot.__init__(self)
         self.dynamics = dynamics
         self.simulated_robot = simulated_robot
@@ -25,11 +26,15 @@ class AbstractRobot(Robot):
         self.steps = 0
         self.controller = controller
         self.renderer = renderer
+        self.abstract_action_horizon = abstract_action_horizon
 
     def initialize_from_config(self, config_data, section_name):
         Robot.initialize_from_config(self, config_data, section_name)
         dynamics_section_name = config_data.get(section_name, 'dynamics')
         self.dynamics = factory_from_config(dynamics_factory_base, config_data, dynamics_section_name)
+        simulated_robot_section_name = config_data.get(section_name, 'simulated_robot')
+        self.simulated_robot = factory_from_config(robot_factory_base, config_data, simulated_robot_section_name)
+        self.abstract_action_horizon = config_data.get(section_name, 'abstract_action_horizon')
         self.state = np.asarray(ast.literal_eval(config_data.get(section_name, 'start_state')))
         self.start_state = self.state
         self.data_type = config_data.get(section_name, 'data_type')
@@ -37,15 +42,15 @@ class AbstractRobot(Robot):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
         else:
             self.steps_per_action = 1
-        if config_data.has_option(section_name,
-                                  'cost_evaluator'):  # controller may have a different cost evaluator from the robot, if we use the robot to train rl algorithms
+
+        # controller may have a different cost evaluator from the robot, if we use the robot to train rl algorithms
+        if config_data.has_option(section_name, 'cost_evaluator'):
             cost_evaluator_section_name = config_data.get(section_name, 'cost_evaluator')
             self.cost_evaluator = factory_from_config(cost_evaluator_factory_base, config_data,
                                                       cost_evaluator_section_name)
         if config_data.has_option(section_name, 'observer'):
             observer_section_name = config_data.get(section_name, 'observer')
             self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
-
 
     @property
     def delta_t(self):
@@ -55,13 +60,13 @@ class AbstractRobot(Robot):
         return copy.copy(self.state)
 
     def get_time(self):
-        return self.steps * self.dynamics.get_delta_t()
+        return self.steps * self.abstract_action_horizon * self.dynamics.get_delta_t()
 
     def get_state_dim(self):
         return self.dynamics.get_state_dim()
 
     def get_action_dim(self):
-        return self.dynamics.get_action_dim()
+        return self.dynamics.get_state_dim()  # action is the goal in the state space
 
     def get_obs_dim(self):
         return self.observer.get_obs_dim()
@@ -128,8 +133,12 @@ class AbstractRobot(Robot):
 
     def propagate_robot(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
-        state_next = self.dynamics.propagate(self.state, action)
-        self.set_state(state_next)
+
+        # update goal for the controller
+        self.controller.cost_evaluator.goal_checker.set_goal(action)
+        self.cost_evaluator.goal_checker.set_goal(action)
+
+        state_next = self.propagate_robot_with_controller(self.abstract_action_horizon)
         self.steps += 1
         return state_next
 

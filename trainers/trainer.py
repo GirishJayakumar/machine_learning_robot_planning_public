@@ -114,7 +114,7 @@ class Trainer(object):
 
             # evaluate model
             if ep % self.hyper_parameters.eval_per_episodes == 0:
-                self.evaluate()
+                self.evaluate(visualize=True, n_eval_episodes=1)
 
         # save final network
         print(' ')

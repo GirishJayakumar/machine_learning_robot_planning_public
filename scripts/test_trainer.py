@@ -18,13 +18,13 @@ def main():
     trainer.train()
 
     # test loading and train
-    trainer.load_model(episode=8, training=True)
-    trainer.train()
+    # trainer.load_model(episode=1999, training=True)
+    # trainer.train()
 
     # test evaluater
     evaluator = Trainer()
     evaluator.initialize_from_config(config_data=config_data, section_name='trainer')
-    evaluator.load_model(episode=9, training=False)
+    evaluator.load_model(episode=450, training=False)
     evaluator.evaluate(n_eval_episodes=10, eval_episode_length=100, visualize=True)
 
 
