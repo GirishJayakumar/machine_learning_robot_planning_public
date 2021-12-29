@@ -5,10 +5,11 @@ from copy import deepcopy
 
 
 class GoalChecker(object):
-    def __init__(self, goal_state=None, goal_radius=None, ultimate_goal_state=None, ultimate_goal_radius=None,
+    def __init__(self, goal_state=None, goal_dim=None, goal_radius=None, ultimate_goal_state=None, ultimate_goal_radius=None,
                  kinematics=None):
         self.kinematics = kinematics  # for more complicated collision checkers
         self.goal_state = goal_state
+        self.goal_dim = goal_dim
         self.ultimate_goal_state = ultimate_goal_state
         self.goal_radius = goal_radius
         self.ultimate_goal_radius = ultimate_goal_radius
@@ -26,11 +27,14 @@ class GoalChecker(object):
     def set_goal(self, goal_state):
         self.goal_state = goal_state
 
-    def get_goal(self):
-        raise NotImplementedError
-
     def check(self, state_cur):
         raise NotImplementedError
+
+    def get_goal_dim(self):
+        if self.goal_dim is not None:
+            return self.goal_dim
+        else:
+            return len(self.goal_state)
 
 
 class StateSpaceGoalChecker(GoalChecker):
@@ -69,7 +73,7 @@ class PositionGoalChecker(GoalChecker):
 
     def check(self, state_cur):  # True for goal reached, False for goal not reached
         pos_cur = np.array([state_cur[0], state_cur[1]])
-        goal_pos = np.array(self.goal_state[0], self.goal_state[1])
+        goal_pos = np.array(self.goal_state[0, 0], self.goal_state[1, 0])
         if np.linalg.norm(goal_pos - pos_cur) < self.goal_radius:
             return True
         return False
@@ -91,9 +95,6 @@ class FlexStateSpaceGoalChecker(GoalChecker):
 
     def get_goal(self):
         return (self.goal_state[0], self.goal_state[1], self.goal_radius)
-
-    def get_goal_dim(self):
-        return self.goal_dim
 
     def set_goal(self, goal_state):
         self.goal_state = goal_state

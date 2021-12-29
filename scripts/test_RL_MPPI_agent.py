@@ -10,8 +10,6 @@ from robot_planning.factory.factory_from_config import factory_from_config
 import numpy as np
 
 
-
-
 def main():
     config_path = "configs/rl-mppi-agent.cfg"
     config_data = ConfigParser.ConfigParser()
@@ -21,7 +19,7 @@ def main():
     logger = factory_from_config(logger_factory_base, config_data, 'logger')
     agent1.set_renderer(renderer=renderer1)
     for step in range(30):
-        state_next, cost = agent1.take_action(np.array([0.1*step, 0.1*step, 0, 0, 0]))
+        state_next, cost = agent1.take_action(np.array([0.1 * step, 0.1 * step, 0, 0, 0]).reshape((-1, 1)))
         renderer1.show()
         time = agent1.get_time()
         logger.save_fig(renderer=renderer1, time=time)

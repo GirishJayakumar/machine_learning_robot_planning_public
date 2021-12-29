@@ -30,10 +30,13 @@ class AbstractDynamics(NumpySimulatedDynamics):
         return state_next
 
     def get_action_dim(self):
-        return self.simulated_robot.dynamics.cost_evaluator.goal_checker.get_goal_dim()
+        return (self.simulated_robot.cost_evaluator.goal_checker.get_goal_dim(),)
 
     def get_state_dim(self):
         return self.simulated_robot.dynamics.get_state_dim()
 
     def get_max_action(self):
+        return self.simulated_robot.dynamics.get_state_bounds()
+
+    def get_state_bounds(self):
         return self.simulated_robot.dynamics.get_state_bounds()

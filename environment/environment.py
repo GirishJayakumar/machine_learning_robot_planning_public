@@ -27,7 +27,8 @@ class Environment(object):
             self.agent_list[i].observer.set_agent_list(agent_list=self.agent_list, agent_index=i)
             other_agents_list = copy.copy(self.agent_list)
             other_agents_list.pop(i)
-            self.agent_list[i].cost_evaluator.collision_checker.set_other_agents_list(other_agents_list)
+            if len(other_agents_list) > 0:
+                self.agent_list[i].cost_evaluator.collision_checker.set_other_agents_list(other_agents_list)
         if config_data.has_option(section_name, 'steps_per_action'):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
         else:

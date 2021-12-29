@@ -28,6 +28,9 @@ def cost_evaluator_factory_base(base_type):
     elif base_type == 'terminal_cost':
         from robot_planning.environment.cost_evaluators import TerminalCostEvaluator
         return TerminalCostEvaluator()
+    elif base_type == 'abstract_cost':
+        from robot_planning.environment.cost_evaluators import AbstractCostEvaluator
+        return AbstractCostEvaluator()
     else:
         raise ValueError('cost_evaluator type {} not recognized'.format(base_type))
 
@@ -159,6 +162,9 @@ def observer_factory_base(base_type):
     if base_type == 'local_state_observer':
         from robot_planning.environment.observer import LocalStateObserver
         return LocalStateObserver()
+    if base_type == 'abstract_full_state_observer':
+        from robot_planning.environment.observer import AbstractFullStateObserver
+        return AbstractFullStateObserver()
     else:
         raise ValueError('observer type {} is not recognized'.format(base_type))
 

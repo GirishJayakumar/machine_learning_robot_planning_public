@@ -13,7 +13,7 @@ class CostEvaluator():
     def initialize_from_config(self, config_data, section_name):
         raise NotImplementedError
 
-    def evaluate(self, state_cur, dyna_obstacle_list=None):
+    def evaluate(self, state_cur, state_next=None, dyna_obstacle_list=None):
         raise NotImplementedError
 
     def set_collision_checker(self, collision_checker=None):
@@ -69,7 +69,8 @@ class QuadraticCostEvaluator(CostEvaluator):
     def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
         if state_cur.ndim == 1:
             state_cur = state_cur.reshape((-1, 1))
-        cost = (1/2) * (state_cur - self.goal_checker.goal_state).T @ self.Q @ (state_cur - self.goal_checker.goal_state)
+        cost = (1 / 2) * (state_cur - self.goal_checker.goal_state).T @ self.Q @ (
+                state_cur - self.goal_checker.goal_state)
         if actions is not None:
             cost += (1 / 2) * actions.T @ self.R @ actions
         if self.collision_checker.check(state_cur):  # True for collision, False for no collision
@@ -89,7 +90,7 @@ class QuadraticCostEvaluator(CostEvaluator):
             state_cur = state_cur.reshape((-1, 1))
         # evaluate cost of the final step of the horizon
         cost = (1 / 2) * (state_cur - self.goal_checker.goal_state).T @ self.QN @ (
-                    state_cur - self.goal_checker.goal_state)
+                state_cur - self.goal_checker.goal_state)
         if actions is not None:
             cost += (1 / 2) * actions.T @ self.R @ actions
         if self.collision_checker.check(state_cur):  # True for collision, False for no collision
@@ -116,17 +117,21 @@ class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
         map_state = self.global_to_local_coordinate_transform(state_cur, dynamics)
         error_state_right = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=2)
         error_state_left = np.expand_dims((map_state - self.goal_checker.goal_state.reshape((-1, 1))).T, axis=1)
-        cost = (1/2) * error_state_left @ np.tile(np.expand_dims(self.Q, axis=0), (state_cur.shape[1], 1, 1)) @ error_state_right
+        cost = (1 / 2) * error_state_left @ np.tile(np.expand_dims(self.Q, axis=0),
+                                                    (state_cur.shape[1], 1, 1)) @ error_state_right
         if actions is not None:
             actions_left = np.expand_dims(actions.T, axis=1)
             actions_right = np.expand_dims(actions.T, axis=2)
             if noises is not None:
                 noises_left = np.expand_dims(noises.T, axis=1)
                 noises_right = np.expand_dims(noises.T, axis=2)
-                cost += 1/2 * noises_left @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ noises_right
-                cost += (actions_left - noises_left) @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ noises_right
+                cost += 1 / 2 * noises_left @ np.tile(np.expand_dims(self.R, axis=0),
+                                                      (state_cur.shape[1], 1, 1)) @ noises_right
+                cost += (actions_left - noises_left) @ np.tile(np.expand_dims(self.R, axis=0),
+                                                               (state_cur.shape[1], 1, 1)) @ noises_right
             else:
-                cost += (1/2) * actions_left @ np.tile(np.expand_dims(self.R, axis=0), (state_cur.shape[1], 1, 1)) @ actions_right
+                cost += (1 / 2) * actions_left @ np.tile(np.expand_dims(self.R, axis=0),
+                                                         (state_cur.shape[1], 1, 1)) @ actions_right
         # collisions =  self.collision_checker.check(state_cur)  # True for collision, False for no collision
         # collisions = collisions.reshape((-1, 1, 1))
         # if self.collision_cost is not None:
@@ -154,7 +159,6 @@ class AutorallyMPPICostEvaluator(QuadraticCostEvaluator):
         new_state = state.copy()
         new_state[5:, :] = np.vstack((e_psi, e_y, s))
         return new_state
-
 
 
 class TerminalCostEvaluator(CostEvaluator):
@@ -198,4 +202,25 @@ class TerminalCostEvaluator(CostEvaluator):
                 cost += -5000  # default goal cost
 
         return cost
+
+
+class AbstractCostEvaluator(CostEvaluator):
+    def __init__(self, goal_checker=None, collision_checker=None, non_achievable_cost=None, achievable_cost=None):
+        CostEvaluator.__init__(self, goal_checker, collision_checker)
+        self.non_achievable_cost = non_achievable_cost
+        self.achievable_cost = achievable_cost
+        self.dense = None
+
+    def initialize_from_config(self, config_data, section_name):
+        self.non_achievable_cost = config_data.getfloat(section_name, 'non_achievable_cost')
+        if config_data.has_option(section_name, 'achievable_cost'):
+            self.achievable_cost = config_data.getfloat(section_name, 'achievable_cost')
+        else:
+            self.achievable_cost = - self.non_achievable_cost
+
+    def evaluate(self, state_cur, state_next=None, action=None):
+        if self.goal_checker.check(state_cur):
+            return self.achievable_cost
+        else:
+            return self.non_achievable_cost
 

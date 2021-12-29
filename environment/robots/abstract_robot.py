@@ -14,7 +14,8 @@ import ast
 
 class AbstractRobot(Robot):
     def __init__(self, dynamics=None, simulated_robot=None, start_state=None, steps_per_action=None,
-                 abstract_action_horizon=None, data_type=None, cost_evaluator=None, controller=None, renderer=None):
+                 abstract_action_horizon=None, data_type=None, cost_evaluator=None, controller=None, renderer=None,
+                 observer=None):
         Robot.__init__(self)
         self.dynamics = dynamics
         self.start_state = start_state
@@ -25,6 +26,7 @@ class AbstractRobot(Robot):
         self.steps = 0
         self.controller = controller
         self.renderer = renderer
+        self.observer = observer
         self.abstract_action_horizon = abstract_action_horizon
 
     def initialize_from_config(self, config_data, section_name):
@@ -45,6 +47,8 @@ class AbstractRobot(Robot):
             cost_evaluator_section_name = config_data.get(section_name, 'cost_evaluator')
             self.cost_evaluator = factory_from_config(cost_evaluator_factory_base, config_data,
                                                       cost_evaluator_section_name)
+            # link the goal checker of the simulated robot with the abstract robot's cost evaluator
+            self.cost_evaluator.set_goal_checker(self.dynamics.simulated_robot.cost_evaluator.goal_checker)
         if config_data.has_option(section_name, 'observer'):
             observer_section_name = config_data.get(section_name, 'observer')
             self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
@@ -118,8 +122,8 @@ class AbstractRobot(Robot):
         self.dynamics.simulated_robot.render_robot_state()
         # if self.dynamics.simulated_robot.renderer is not None:
         #     self.dynamics.simulated_robot.render_robot_state()
-            # self.dynamics.simulated_robot.renderer.render_states(state_list=[self.get_state()],
-            #                                                      kinematics=self.dynamics.simulated_robot.controller.cost_evaluator.collision_checker.kinematics)
+        # self.dynamics.simulated_robot.renderer.render_states(state_list=[self.get_state()],
+        #                                                      kinematics=self.dynamics.simulated_robot.controller.cost_evaluator.collision_checker.kinematics)
 
     def render_obstacles(self):
         if self.renderer is not None:
@@ -138,23 +142,26 @@ class AbstractRobot(Robot):
         self.dynamics.simulated_robot.controller.cost_evaluator.goal_checker.set_goal(action)
         self.dynamics.simulated_robot.cost_evaluator.goal_checker.set_goal(action)
 
-        state_next = self.dynamics.simulated_robot.take_action_with_controller()
+        state_next, cost = self.dynamics.simulated_robot.take_action_with_controller()
         self.steps += 1
-        return state_next
+        return state_next, cost
 
-    def evaluate_state_action_pair_cost(self, state, action):
-        return self.cost_evaluator.evaluate(state, action)
+    def evaluate_state_action_pair_cost(self, state, action, state_next):
+        return self.cost_evaluator.evaluate(state, action, state_next)
 
     def take_action(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
+        state_cur = copy.deepcopy(self.state)
         state_next = None
         cost = 0
         self.render_robot_state()
         for _ in range(self.steps_per_action):
-            state_next = self.propagate_robot(action)
-            # TODO: change the cost evaluator
-            # cost += self.evaluate_state_action_pair_cost(state_next, action)
+            state_next, cost_step = self.propagate_robot(action)
+            cost += cost_step
         assert state_next is not None, 'invalid state!'
+
+        # check if assigned new goal has been achieved
+        self.evaluate_state_action_pair_cost(state=state_cur, action=action, state_next=state_next)
         return state_next, cost
 
     def take_action_sequence(self, actions):
@@ -163,7 +170,7 @@ class AbstractRobot(Robot):
         cost = 0
         self.render_robot_state()
         for action in actions:
-            state_next = self.propagate_robot(action)
-            cost += self.evaluate_state_action_pair_cost(state_next, action)
+            state_next, cost_step = self.propagate_robot(action)
+            cost += cost_step
         assert state_next is None, 'invalid state!'
         return state_next, cost
