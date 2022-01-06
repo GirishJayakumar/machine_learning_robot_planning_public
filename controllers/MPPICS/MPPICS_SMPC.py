@@ -7,7 +7,7 @@ import ast
 import copy
 
 
-class MPPICS(MpcController):
+class MPPICS_SMPC(MpcController):
     def __init__(self, control_horizon=None, dynamics=None, cost_evaluator=None, control_dim=None, inverse_temperature=None, initial_control_sequence=None, stochastic_trajectories_sampler=None, renderer=None):
         MpcController.__init__(self, control_horizon, dynamics, cost_evaluator, control_dim, renderer)
         self.inverse_temperature = inverse_temperature
@@ -45,7 +45,10 @@ class MPPICS(MpcController):
             self.renderer.render_trajectories(trajectories, **{'color': "b"})
             self.renderer.render_trajectories([optimal_trajectory], **{'color': "r"})
             self.renderer.render_trajectories(optimal_trajectory_with_covariance_control, **{'color': "g"})
-        u = us[0, :, :]
+        u = v[:, 0]
+        v = np.delete(v, 0, 1)
+        v = np.hstack((v, v[:, -1].reshape(v.shape[0], 1)))
+        self.set_initial_control_sequence(v)
         return u
 
     def set_initial_control_sequence(self, initial_control_sequence):

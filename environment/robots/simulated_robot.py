@@ -168,10 +168,15 @@ class SimulatedRobot(Robot):
         state_next = None
         cost = 0
         self.render_robot_state()
+        self.renderer.show()
         for action in actions:
             state_next = self.propagate_robot(action)
+            self.render_robot_state()
+            self.renderer.show()
+            self.renderer.clear()
             cost += self.evaluate_state_action_pair_cost(state_next, action)
-        assert state_next is None, 'invalid state!'
+        if state_next is None:
+            print('invalid state!')
         return state_next, cost
 
     def propagate_robot_with_controller(self):
