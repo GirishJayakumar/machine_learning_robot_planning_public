@@ -19,7 +19,7 @@ class TestRunCCMPPI(unittest.TestCase):
     def tearDownClass(cls):
         print("tearDownClass")
 
-    def test_run_MPPI(self):
+    def test_run_CCMPPI(self):
         config_path = "configs/test_run_CCMPPI.cfg"
         config_data = ConfigParser.ConfigParser()
         config_data.read(config_path)

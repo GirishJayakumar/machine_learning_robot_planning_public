@@ -91,6 +91,9 @@ def controller_factory_base(base_type):
     elif base_type == 'CSSMPC_Aurorally':
         from robot_planning.controllers.CSSMPC.CSSMPC import CSSMPCAutorally
         return CSSMPCAutorally()
+    elif base_type == 'MPPICS':
+        from robot_planning.controllers.MPPICS.MPPICS import MPPICS
+        return MPPICS()
     else:
         raise ValueError('controller type {} is not recognized'.format(base_type))
 
