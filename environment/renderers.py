@@ -16,6 +16,9 @@ class Renderer():
     def create_figure(self):
         pass
 
+    def close_figure(self):
+        pass
+
     def render_all(self):
         pass
 
@@ -65,6 +68,9 @@ class MatplotlibRenderer(Renderer):
         self._figure = plt.figure(figsize=(self.figure_size[0], self.figure_size[1]), dpi=self.figure_dpi)
         self._axis = self._figure.add_subplot(1, 1, 1)
         plt.figure(self._figure.number)
+
+    def close_figure(self):
+        plt.close(self._figure)
 
     def set_range(self):
         if not self.auto_range:

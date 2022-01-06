@@ -5,20 +5,23 @@ from copy import deepcopy
 
 
 class GoalChecker(object):
-    def __init__(self, goal_state=None, goal_dim=None, goal_radius=None, ultimate_goal_state=None, ultimate_goal_radius=None,
-                 kinematics=None):
+    def __init__(self, goal_state=None, goal_dim=None, goal_radius=None, goal_color=None, kinematics=None):
         self.kinematics = kinematics  # for more complicated collision checkers
         self.goal_state = goal_state
         self.goal_dim = goal_dim
-        self.ultimate_goal_state = ultimate_goal_state
         self.goal_radius = goal_radius
-        self.ultimate_goal_radius = ultimate_goal_radius
+        self.ultimate_goal_state = None
+        self.ultimate_goal_radius = None
+        self.goal_color = goal_color
 
     def initialize_from_config(self, config_data, section_name):
         pass
 
     def get_goal(self):
         return (self.goal_state[0], self.goal_state[1], self.goal_radius)
+
+    def get_goal_color(self):
+        return self.goal_color
 
     def get_ultimate_goal(self):
         if self.ultimate_goal_state is not None:
@@ -50,6 +53,10 @@ class StateSpaceGoalChecker(GoalChecker):
                 ast.literal_eval(config_data.get(section_name, 'ultimate_goal_state')))
         if config_data.has_option(section_name, 'ultimate_goal_radius'):
             self.ultimate_goal_radius = config_data.getfloat(section_name, 'ultimate_goal_radius')
+        if config_data.has_option(section_name, 'goal_color'):
+            self.goal_color = config_data.get(section_name, 'goal_color')
+        else:
+            self.goal_color = 'r'
 
     def check(self, state_cur):  # True for goal reached, False for goal not reached
         if np.linalg.norm(self.goal_state - state_cur) < self.goal_radius:
@@ -70,6 +77,10 @@ class PositionGoalChecker(GoalChecker):
                 ast.literal_eval(config_data.get(section_name, 'ultimate_goal_state')))
         if config_data.has_option(section_name, 'ultimate_goal_radius'):
             self.ultimate_goal_radius = config_data.getfloat(section_name, 'ultimate_goal_radius')
+        if config_data.has_option(section_name, 'goal_color'):
+            self.goal_color = config_data.get(section_name, 'goal_color')
+        else:
+            self.goal_color = 'r'
 
     def check(self, state_cur):  # True for goal reached, False for goal not reached
         pos_cur = np.array([state_cur[0], state_cur[1]])
@@ -92,6 +103,10 @@ class FlexStateSpaceGoalChecker(GoalChecker):
         self.goal_state = None
         self.goal_dim = (int(config_data.getfloat(section_name, 'goal_dim')),)
         self.goal_radius = config_data.getfloat(section_name, 'goal_radius')
+        if config_data.has_option(section_name, 'goal_color'):
+            self.goal_color = config_data.get(section_name, 'goal_color')
+        else:
+            self.goal_color = 'r'
 
     def get_goal(self):
         return (self.goal_state[0], self.goal_state[1], self.goal_radius)
@@ -113,6 +128,10 @@ class AutorallyCartesianGoalChecker(GoalChecker):
         GoalChecker.initialize_from_config(self, config_data, section_name)
         self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')))
         self.goal_radius = config_data.getfloat(section_name, 'goal_radius')
+        if config_data.has_option(section_name, 'goal_color'):
+            self.goal_color = config_data.get(section_name, 'goal_color')
+        else:
+            self.goal_color = 'r'
 
     def get_goal(self):
         return (self.goal_state[-2], self.goal_state[-1], self.goal_radius)

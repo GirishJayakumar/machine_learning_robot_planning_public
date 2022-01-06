@@ -219,8 +219,8 @@ class AbstractCostEvaluator(CostEvaluator):
             self.achievable_cost = - self.non_achievable_cost
 
     def evaluate(self, state_cur, state_next=None, action=None):
+        assert np.linalg.norm(action.reshape(self.goal_checker.goal_state.shape) - self.goal_checker.goal_state) < 1e-5
         if self.goal_checker.check(state_cur):
             return self.achievable_cost
         else:
             return self.non_achievable_cost
-

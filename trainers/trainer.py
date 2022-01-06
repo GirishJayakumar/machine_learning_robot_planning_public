@@ -113,7 +113,7 @@ class Trainer(object):
                 self.save_model(episode=ep)
 
             # evaluate model
-            if ep % self.hyper_parameters.eval_per_episodes == 0:
+            if ep % self.hyper_parameters.eval_per_episodes == 0 and ep > 0:
                 self.evaluate(visualize=True, n_eval_episodes=1)
 
         # save final network
@@ -138,6 +138,7 @@ class Trainer(object):
             _, observations, _ = self.env.reset(initial_states=initial_states, random=random)
             for t in range(eval_episode_length):
                 if visualize:
+                    self.env.renderer.create_figure()
                     self.env.render()
                     self.env.renderer.show()
                     self.env.renderer.clear()

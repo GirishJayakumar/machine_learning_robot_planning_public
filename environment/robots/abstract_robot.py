@@ -19,7 +19,6 @@ class AbstractRobot(Robot):
         Robot.__init__(self)
         self.dynamics = dynamics
         self.start_state = start_state
-        self.state = start_state
         self.cost_evaluator = cost_evaluator
         self.data_type = data_type
         self.steps_per_action = steps_per_action
@@ -34,8 +33,7 @@ class AbstractRobot(Robot):
         dynamics_section_name = config_data.get(section_name, 'dynamics')
         self.dynamics = factory_from_config(dynamics_factory_base, config_data, dynamics_section_name)
         self.abstract_action_horizon = int(config_data.get(section_name, 'abstract_action_horizon'))
-        self.state = np.asarray(ast.literal_eval(config_data.get(section_name, 'start_state')))
-        self.start_state = self.state
+        self.start_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'start_state')))
         self.data_type = config_data.get(section_name, 'data_type')
         if config_data.has_option(section_name, 'steps_per_action'):
             self.steps_per_action = config_data.getint(section_name, 'steps_per_action')
@@ -53,12 +51,22 @@ class AbstractRobot(Robot):
             observer_section_name = config_data.get(section_name, 'observer')
             self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
 
-        self.dynamics.simulated_robot.state = self.state
+        self.dynamics.simulated_robot.state = self.start_state
         self.dynamics.simulated_robot.steps_per_action = self.abstract_action_horizon
+        self.cost_evaluator.set_collision_checker(self.dynamics.simulated_robot.cost_evaluator.collision_checker)
 
     @property
     def delta_t(self):
         return self.dynamics.get_delta_t()
+
+    @property
+    def state(self):
+        return copy.copy(self.dynamics.simulated_robot.state)
+
+    @state.setter
+    def state(self, x):
+        assert x.shape == self.get_state_dim()
+        self.dynamics.simulated_robot.set_state(x)
 
     def get_state(self):
         return copy.copy(self.dynamics.simulated_robot.state)
@@ -70,7 +78,7 @@ class AbstractRobot(Robot):
         return self.dynamics.get_state_dim()
 
     def get_action_dim(self):
-        return self.dynamics.get_state_dim()  # action is the goal in the state space
+        return self.dynamics.simulated_robot.cost_evaluator.goal_checker.goal_state.shape  # action is the goal in the state space
 
     def get_obs_dim(self):
         return self.observer.get_obs_dim()
@@ -86,7 +94,7 @@ class AbstractRobot(Robot):
 
     def set_state(self, x):
         assert x.shape == self.get_state_dim()
-        self.state = copy.copy(x)
+        self.dynamics.simulated_robot.set_state(x)
 
     def set_time(self, time):
         self.steps = time / self.dynamics.get_delta_t()
@@ -139,6 +147,7 @@ class AbstractRobot(Robot):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
 
         # update goal for the controller
+        action = action.reshape(self.get_action_dim())
         self.dynamics.simulated_robot.controller.cost_evaluator.goal_checker.set_goal(action)
         self.dynamics.simulated_robot.cost_evaluator.goal_checker.set_goal(action)
 
@@ -146,8 +155,8 @@ class AbstractRobot(Robot):
         self.steps += 1
         return state_next, cost
 
-    def evaluate_state_action_pair_cost(self, state, action, state_next):
-        return self.cost_evaluator.evaluate(state, action, state_next)
+    def evaluate_state_action_pair_cost(self, state_cur, action, state_next):
+        return self.cost_evaluator.evaluate(state_cur=state_cur, action=action, state_next=state_next)
 
     def take_action(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'

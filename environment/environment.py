@@ -37,23 +37,28 @@ class Environment(object):
         # renderer
         renderer_section_name = config_data.get(section_name, 'renderer')
         self.renderer = factory_from_config(renderer_factory_base, config_data, renderer_section_name)
-
+        self.renderer.close_figure()
         self.n_agents = len(self.agent_list)
 
     def single_step(self, actions):
-        states = []
+        states_cur = []
+        states_next = []
         observations = []
         costs = np.zeros(len(self.agent_list))
         for i in range(len(self.agent_list)):
-            state_next = self.agent_list[i].propagate_robot(actions[i])
-            states.append(state_next)
+            state_cur = self.agent_list[i].get_state()
+            states_cur.append(state_cur)
         for i in range(len(self.agent_list)):
-            cost = self.agent_list[i].evaluate_state_action_pair_cost(states[i], actions[i])
-            costs[i] = cost
+            state_next, control_cost = self.agent_list[i].propagate_robot(actions[i])
+            states_next.append(state_next)
+            costs[i] += control_cost
+        for i in range(len(self.agent_list)):
+            terminal_cost = self.agent_list[i].evaluate_state_action_pair_cost(state_cur=states_cur[i], action=actions[i], state_next=states_next[i])
+            costs[i] += terminal_cost
             observation_next = self.agent_list[i].observer.observe()
             observations.append(observation_next)
         rl_rewards = - costs
-        return states, observations, costs, rl_rewards
+        return states_next, observations, costs, rl_rewards
 
     def step(self, actions):
         costs_sum = np.zeros(len(self.agent_list))
@@ -89,9 +94,10 @@ class Environment(object):
                 states.append(state)
             costs.append(None)
 
-            collision_free = not any([agent.cost_evaluator.collision_checker.check(agent.get_state()) for agent in self.agent_list])
+            collision_free = not any(
+                [agent.cost_evaluator.collision_checker.check(agent.get_state()) for agent in self.agent_list])
             n_attempts += 1
-            if n_attempts >= 50:
+            if n_attempts >= 10:
                 raise Exception("initial state cannot be randomly initialized! check parameters!")
 
         for i in range(len(self.agent_list)):
@@ -106,14 +112,13 @@ class Environment(object):
                                                      agent in self.agent_list])
         # render goal
         goal_list = [agent.cost_evaluator.goal_checker.get_goal() for agent in self.agent_list]
-        self.renderer.render_goal(goal=goal_list[0], **{'color': "g"})
-        self.renderer.render_goal(goal=goal_list[1], **{'color': "r"})
+        goal_colors = ['r']
+        for goal, goal_color in zip(goal_list, goal_colors):
+            self.renderer.render_goal(goal=goal, **{'color': goal_color})
 
         # render obstacles
         obstacle_list = self.agent_list[0].cost_evaluator.collision_checker.get_obstacle_list()
         self.renderer.render_obstacles(obstacle_list=obstacle_list, **{'color': "k"})
-
-
 
     def get_all_state_dims(self):
         all_state_dims = [agent.dynamics.get_state_dim() for agent in self.agent_list]
