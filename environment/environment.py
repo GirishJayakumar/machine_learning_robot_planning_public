@@ -55,7 +55,7 @@ class Environment(object):
             states_next.append(state_next)
             costs[i] += control_cost
         for i in range(len(self.agent_list)):
-            terminal_cost = self.agent_list[i].evaluate_state_action_pair_cost(state_cur=states_cur[i], action=actions[i], state_next=states_next[i])
+            terminal_cost = self.agent_list[i].evaluate_state_action_pair_cost(state=states_cur[i], action=actions[i], state_next=states_next[i])
             costs[i] += terminal_cost
             observation_next = self.agent_list[i].observer.observe()
             observations.append(observation_next)

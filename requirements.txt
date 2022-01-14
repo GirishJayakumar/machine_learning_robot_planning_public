@@ -8,3 +8,4 @@ mosek
 pytest
 imageio
 moviepy
+cvxpy

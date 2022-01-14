@@ -111,9 +111,6 @@ class SimulatedRobot(Robot):
             else:
                 self.state = deepcopy(self.start_state)
 
-    def reset_time(self):
-        self.steps = 0
-
     def reset_controller(self):
         if self.controller is not None:
             self.controller.reset()
@@ -152,11 +149,12 @@ class SimulatedRobot(Robot):
     def propagate_robot(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
         state_next = self.dynamics.propagate(self.state, action)
+        control_cost = 0
         self.set_state(state_next)
         self.steps += 1
-        return state_next
+        return state_next, control_cost
 
-    def evaluate_state_action_pair_cost(self, state, action):
+    def evaluate_state_action_pair_cost(self, state, action, state_next=None):
         return self.cost_evaluator.evaluate(state.reshape((-1, 1)), action.reshape((-1, 1)), dynamics=self.dynamics)
 
     def take_action(self, action):
@@ -165,8 +163,8 @@ class SimulatedRobot(Robot):
         cost = 0
         self.render_robot_state()
         for _ in range(self.steps_per_action):
-            state_next = self.propagate_robot(action)
-            cost += self.evaluate_state_action_pair_cost(state_next, action)
+            state_next, control_cost = self.propagate_robot(action)
+            cost += self.evaluate_state_action_pair_cost(state=state_next, action=action)
         assert state_next is not None, 'invalid state!'
         return state_next, cost
 
@@ -176,8 +174,8 @@ class SimulatedRobot(Robot):
         cost = 0
         self.render_robot_state()
         for action in actions:
-            state_next = self.propagate_robot(action)
-            cost += self.evaluate_state_action_pair_cost(state_next, action)
+            state_next, control_cost = self.propagate_robot(action)
+            cost += self.evaluate_state_action_pair_cost(state=state_next, action=action)
         assert state_next is None, 'invalid state!'
         return state_next, cost
 
@@ -202,7 +200,7 @@ class SimulatedRobot(Robot):
             # print(self.get_state())
             if self.renderer.active:
                 self.render_show_all()
-            state_next = self.propagate_robot(action)
-            cost += self.evaluate_state_action_pair_cost(state_next, action)
+            state_next, control_cost = self.propagate_robot(action)
+            cost += self.evaluate_state_action_pair_cost(state=state_next, action=action)
         assert state_next is not None, 'invalid state!'
         return state_next, cost

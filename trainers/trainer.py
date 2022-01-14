@@ -82,7 +82,7 @@ class Trainer(object):
         epsilon = self.hyper_parameters.epsilon
 
         # Start training
-        for ep in tqdm(range(0, self.hyper_parameters.n_episodes), position=0, leave=True, desc="Training Episodes"):
+        for ep in tqdm(range(0, self.hyper_parameters.n_episodes + 1), position=0, leave=True, desc="Training Episodes"):
             self.env.deactivate_renderer()
             _, observations, _ = self.env.reset(random=True)
 

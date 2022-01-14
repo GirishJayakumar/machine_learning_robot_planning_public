@@ -162,8 +162,8 @@ class AbstractRobot(Robot):
         self.steps += 1
         return state_next, cost
 
-    def evaluate_state_action_pair_cost(self, state_cur, action, state_next):
-        return self.cost_evaluator.evaluate(state_cur=state_cur, action=action, state_next=state_next)
+    def evaluate_state_action_pair_cost(self, state, action, state_next):
+        return self.cost_evaluator.evaluate(state_cur=state, action=action, state_next=state_next)
 
     def take_action(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'

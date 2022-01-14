@@ -18,7 +18,7 @@ def main():
     # trainer.evaluate(visualize=True, n_eval_episodes=1)
 
     # test training
-    # trainer.train()
+    trainer.train()
 
     # test loading and train
     # trainer.load_model(episode=1999, training=True)
