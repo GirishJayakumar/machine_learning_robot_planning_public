@@ -14,8 +14,11 @@ def main():
     trainer.initialize_from_config(config_data=config_data, section_name='trainer')
     print('trainer initialized!')
 
+    # # test visualize
+    # trainer.evaluate(visualize=True, n_eval_episodes=1)
+
     # test training
-    trainer.train()
+    # trainer.train()
 
     # test loading and train
     # trainer.load_model(episode=1999, training=True)
@@ -24,8 +27,8 @@ def main():
     # test evaluater
     evaluator = Trainer()
     evaluator.initialize_from_config(config_data=config_data, section_name='trainer')
-    evaluator.load_model(episode=450, training=False)
-    evaluator.evaluate(n_eval_episodes=10, eval_episode_length=100, visualize=True)
+    evaluator.load_model(episode=250, training=False)
+    evaluator.evaluate(n_eval_episodes=1, eval_episode_length=30, visualize=True, save_animation=True)
 
 
     print('done!')

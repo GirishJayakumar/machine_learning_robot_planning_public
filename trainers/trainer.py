@@ -83,6 +83,7 @@ class Trainer(object):
 
         # Start training
         for ep in tqdm(range(0, self.hyper_parameters.n_episodes), position=0, leave=True, desc="Training Episodes"):
+            self.env.deactivate_renderer()
             _, observations, _ = self.env.reset(random=True)
 
             for t in range(self.hyper_parameters.episode_len):
@@ -114,7 +115,7 @@ class Trainer(object):
 
             # evaluate model
             if ep % self.hyper_parameters.eval_per_episodes == 0 and ep > 0:
-                self.evaluate(visualize=True, n_eval_episodes=1)
+                self.evaluate(visualize=False, n_eval_episodes=1)
 
         # save final network
         print(' ')
@@ -123,12 +124,17 @@ class Trainer(object):
         print('##################')
         self.save_model(episode=ep)
 
-    def evaluate(self, initial_states=None, random=False, visualize=False, n_eval_episodes=None,
+    def evaluate(self, initial_states=None, random=False, visualize=False, save_animation=False, n_eval_episodes=None,
                  eval_episode_length=None):
         if n_eval_episodes is None:
             n_eval_episodes = self.hyper_parameters.n_eval_episodes
         if eval_episode_length is None:
             eval_episode_length = self.hyper_parameters.eval_episode_length
+
+        if visualize:
+            self.env.activate_renderer()
+            self.env.renderer.save_animation = save_animation
+            self.env.renderer.create_figure()
 
         returns = []
         mean_returns = [0 for _ in range(self.n_agents)]
@@ -137,12 +143,6 @@ class Trainer(object):
             episode_return = [0 for _ in range(self.n_agents)]
             _, observations, _ = self.env.reset(initial_states=initial_states, random=random)
             for t in range(eval_episode_length):
-                if visualize:
-                    self.env.renderer.create_figure()
-                    self.env.render()
-                    self.env.renderer.show()
-                    self.env.renderer.clear()
-
                 # step
                 obs_torch = list_np2list_tensor(observations)
                 actions = self.step(obs_torch, exploration=False)
@@ -153,6 +153,10 @@ class Trainer(object):
                 for agent_index in range(self.n_agents):
                     episode_return[agent_index] += rewards[agent_index]
                     mean_returns[agent_index] += rewards[agent_index]
+
+            if save_animation:
+                self.env.renderer.render_gif()
+                self.env.renderer.render_mp4()
 
             episode_return.insert(0, ep)
             returns.append(episode_return)
@@ -183,7 +187,8 @@ class Trainer(object):
         self.env = self._init_env(config_data, section_name)
 
         # Init path
-        self.model_dir, self.network_dir = self._init_data_path()
+        self.model_dir, self.network_dir, animation_dir = self._init_data_path()
+        self.env.renderer.set_save_dir(animation_dir)
 
         # Init hyper parameters
         hyper_parameter_section_name = config_data.get(section_name, 'hyper_parameters')
@@ -212,7 +217,10 @@ class Trainer(object):
         network_dir = model_dir / 'network_data'
         if not network_dir.exists():
             os.makedirs(network_dir)
-        return model_dir, network_dir
+        animation_dir = model_dir / 'animation'
+        if not animation_dir.exists():
+            os.makedirs(animation_dir)
+        return model_dir, network_dir, animation_dir
 
     def _init_agents(self, config_data):
         agents = []

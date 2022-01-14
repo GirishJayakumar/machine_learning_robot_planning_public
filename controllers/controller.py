@@ -44,6 +44,9 @@ class Controller(object):
     def set_renderer(self, renderer):
         self.renderer = renderer
 
+    def reset(self):
+        raise NotImplementedError
+
 
 class MpcController(Controller):
     def __init__(self, control_horizon=None, dynamics=None, cost_evaluator=None, control_dim=None, renderer=None):

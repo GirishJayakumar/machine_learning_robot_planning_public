@@ -6,3 +6,5 @@ tqdm
 tabulate
 mosek
 pytest
+imageio
+moviepy

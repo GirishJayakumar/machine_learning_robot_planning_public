@@ -114,6 +114,10 @@ class SimulatedRobot(Robot):
     def reset_time(self):
         self.steps = 0
 
+    def reset_controller(self):
+        if self.controller is not None:
+            self.controller.reset()
+
     def set_cost_evaluator(self, cost_evaluator):
         self.cost_evaluator = cost_evaluator
 
@@ -126,19 +130,22 @@ class SimulatedRobot(Robot):
     def render_robot_state(self):
         if self.renderer is not None:
             self.renderer.render_states(state_list=[self.get_state()],
-                                        kinematics=self.controller.cost_evaluator.collision_checker.kinematics)
+                                        kinematics_list=[self.controller.cost_evaluator.collision_checker.kinematics])
 
     def render_obstacles(self):
         if self.renderer is not None:
             obstacle_list = self.cost_evaluator.collision_checker.get_obstacle_list()
             self.renderer.render_obstacles(obstacle_list=obstacle_list, **{'color': "k"})
 
+    def render_show_all(self):
+        self.render_goal()
+        self.render_obstacles()
+        self.render_robot_state()
+        self.renderer.show()
+        self.renderer.clear()
+
     def render_goal(self):
         if self.renderer is not None:
-            ultimate_goal = self.cost_evaluator.goal_checker.get_ultimate_goal()
-            if ultimate_goal is not None:
-                self.renderer.render_goal(goal=ultimate_goal, **{'color': "red"})
-
             goal = self.cost_evaluator.goal_checker.get_goal()
             self.renderer.render_goal(goal=goal, **{'color': "g"})
 
@@ -188,15 +195,13 @@ class SimulatedRobot(Robot):
     def take_action_with_controller(self):
         state_next = None
         cost = 0
-        t0 = time.time()
-        action = self.controller.plan(state_cur=self.get_state())
-        # print('plan time: ', time.time() - t0)
-        state_test = self.get_state()
-        self.render_robot_state()
-        self.render_goal()
-        self.render_obstacles()
+        warm_start_itr = 50 if self.steps == 0 else 1
+
+        action = self.controller.plan(state_cur=self.get_state(), warm_start_itr=warm_start_itr)
         for _ in range(self.steps_per_action):
             # print(self.get_state())
+            if self.renderer.active:
+                self.render_show_all()
             state_next = self.propagate_robot(action)
             cost += self.evaluate_state_action_pair_cost(state_next, action)
         assert state_next is not None, 'invalid state!'

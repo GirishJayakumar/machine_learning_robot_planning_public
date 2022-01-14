@@ -205,22 +205,33 @@ class TerminalCostEvaluator(CostEvaluator):
 
 
 class AbstractCostEvaluator(CostEvaluator):
-    def __init__(self, goal_checker=None, collision_checker=None, non_achievable_cost=None, achievable_cost=None):
+    def __init__(self, goal_checker=None, sub_goal_checker=None, collision_checker=None, non_achievable_cost=None, achievable_cost=None):
         CostEvaluator.__init__(self, goal_checker, collision_checker)
         self.non_achievable_cost = non_achievable_cost
         self.achievable_cost = achievable_cost
         self.dense = None
+        self.sub_goal_checker = sub_goal_checker
 
     def initialize_from_config(self, config_data, section_name):
+        goal_checker_section_name = config_data.get(section_name, 'goal_checker')
+        self.goal_checker = factory_from_config(goal_checker_factory_base, config_data, goal_checker_section_name)
         self.non_achievable_cost = config_data.getfloat(section_name, 'non_achievable_cost')
+        self.ultimate_goal_cost = config_data.getfloat(section_name, 'ultimate_goal_cost')
         if config_data.has_option(section_name, 'achievable_cost'):
             self.achievable_cost = config_data.getfloat(section_name, 'achievable_cost')
         else:
             self.achievable_cost = - self.non_achievable_cost
 
+    def set_sub_goal_checker(self, sub_goal_checker):
+        self.sub_goal_checker = sub_goal_checker
+
     def evaluate(self, state_cur, state_next=None, action=None):
-        assert np.linalg.norm(action.reshape(self.goal_checker.goal_state.shape) - self.goal_checker.goal_state) < 1e-5
-        if self.goal_checker.check(state_cur):
-            return self.achievable_cost
+        assert np.linalg.norm(action.reshape(self.sub_goal_checker.goal_state.shape) - self.sub_goal_checker.goal_state) < 1e-5
+        cost = 0
+        if self.sub_goal_checker.check(state_cur):
+            cost += self.achievable_cost
         else:
-            return self.non_achievable_cost
+            cost += self.non_achievable_cost
+        if self.goal_checker.check(state_cur):
+            cost += self.ultimate_goal_cost
+        return cost

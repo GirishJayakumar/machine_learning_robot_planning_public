@@ -17,11 +17,17 @@ class Environment(object):
         self.renderer = renderer
 
     def initialize_from_config(self, config_data, section_name):
+        # set up renderer
+        renderer_section_name = config_data.get(section_name, 'renderer')
+        self.renderer = factory_from_config(renderer_factory_base, config_data, renderer_section_name)
+        self.renderer.close_figure()
+
         # self.num_robots = config_data.getint(section_name, 'num_robots')
         agent_section_names = list(ast.literal_eval(config_data.get(section_name, 'agent_names')))
         self.agent_list = []
         for agent_section_name in agent_section_names:
             agent = factory_from_config(robot_factory_base, config_data, agent_section_name)
+            agent.set_renderer(self.renderer)
             self.agent_list.append(agent)
         for i in range(len(self.agent_list)):
             self.agent_list[i].observer.set_agent_list(agent_list=self.agent_list, agent_index=i)
@@ -34,10 +40,6 @@ class Environment(object):
         else:
             self.steps_per_action = 1
 
-        # renderer
-        renderer_section_name = config_data.get(section_name, 'renderer')
-        self.renderer = factory_from_config(renderer_factory_base, config_data, renderer_section_name)
-        self.renderer.close_figure()
         self.n_agents = len(self.agent_list)
 
     def single_step(self, actions):
@@ -89,7 +91,9 @@ class Environment(object):
                     initial_state = None
 
                 self.agent_list[i].reset_state(initial_state=initial_state, random=random)
+                self.agent_list[i].reset_controller()
                 self.agent_list[i].reset_time()
+
                 state = self.agent_list[i].get_state()
                 states.append(state)
             costs.append(None)
@@ -111,9 +115,15 @@ class Environment(object):
                                     kinematics_list=[agent.cost_evaluator.collision_checker.kinematics for
                                                      agent in self.agent_list])
         # render goal
-        goal_list = [agent.cost_evaluator.goal_checker.get_goal() for agent in self.agent_list]
-        goal_colors = ['r']
+        goal_list = [agent.cost_evaluator.sub_goal_checker.get_goal() for agent in self.agent_list]
+        goal_colors = [agent.cost_evaluator.sub_goal_checker.get_goal_color() for agent in self.agent_list]
         for goal, goal_color in zip(goal_list, goal_colors):
+            self.renderer.render_goal(goal=goal, **{'color': goal_color})
+
+        # render ultimate goal
+        ultimate_goal_list = [agent.cost_evaluator.goal_checker.get_goal() for agent in self.agent_list]
+        ultimate_goal_colors = [agent.cost_evaluator.goal_checker.get_goal_color() for agent in self.agent_list]
+        for goal, goal_color in zip(ultimate_goal_list, ultimate_goal_colors):
             self.renderer.render_goal(goal=goal, **{'color': goal_color})
 
         # render obstacles
@@ -131,3 +141,9 @@ class Environment(object):
     def get_all_obs_dims(self):
         all_obs_dims = [agent.observer.get_obs_dim() for agent in self.agent_list]
         return all_obs_dims
+
+    def activate_renderer(self):
+        self.renderer.activate()
+
+    def deactivate_renderer(self):
+        self.renderer.deactivate()

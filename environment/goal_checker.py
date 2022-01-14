@@ -10,9 +10,8 @@ class GoalChecker(object):
         self.goal_state = goal_state
         self.goal_dim = goal_dim
         self.goal_radius = goal_radius
-        self.ultimate_goal_state = None
-        self.ultimate_goal_radius = None
         self.goal_color = goal_color
+
 
     def initialize_from_config(self, config_data, section_name):
         pass
@@ -22,10 +21,6 @@ class GoalChecker(object):
 
     def get_goal_color(self):
         return self.goal_color
-
-    def get_ultimate_goal(self):
-        if self.ultimate_goal_state is not None:
-            return (self.ultimate_goal_state[0], self.ultimate_goal_state[1], self.ultimate_goal_radius)
 
     def set_goal(self, goal_state):
         self.goal_state = goal_state
@@ -48,11 +43,6 @@ class StateSpaceGoalChecker(GoalChecker):
         GoalChecker.initialize_from_config(self, config_data, section_name)
         self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state'))).reshape((-1, 1))
         self.goal_radius = config_data.getfloat(section_name, 'goal_radius')
-        if config_data.has_option(section_name, 'ultimate_goal_state'):
-            self.ultimate_goal_state = np.asarray(
-                ast.literal_eval(config_data.get(section_name, 'ultimate_goal_state')))
-        if config_data.has_option(section_name, 'ultimate_goal_radius'):
-            self.ultimate_goal_radius = config_data.getfloat(section_name, 'ultimate_goal_radius')
         if config_data.has_option(section_name, 'goal_color'):
             self.goal_color = config_data.get(section_name, 'goal_color')
         else:
@@ -70,21 +60,16 @@ class PositionGoalChecker(GoalChecker):
 
     def initialize_from_config(self, config_data, section_name):
         GoalChecker.initialize_from_config(self, config_data, section_name)
-        self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state')))
+        self.goal_state = np.asarray(ast.literal_eval(config_data.get(section_name, 'goal_state'))).reshape((-1, 1))
         self.goal_radius = config_data.getfloat(section_name, 'goal_radius')
-        if config_data.has_option(section_name, 'ultimate_goal_state'):
-            self.ultimate_goal_state = np.asarray(
-                ast.literal_eval(config_data.get(section_name, 'ultimate_goal_state')))
-        if config_data.has_option(section_name, 'ultimate_goal_radius'):
-            self.ultimate_goal_radius = config_data.getfloat(section_name, 'ultimate_goal_radius')
         if config_data.has_option(section_name, 'goal_color'):
-            self.goal_color = config_data.get(section_name, 'goal_color')
+            self.goal_color = str(config_data.get(section_name, 'goal_color'))
         else:
             self.goal_color = 'r'
 
     def check(self, state_cur):  # True for goal reached, False for goal not reached
         pos_cur = np.array([state_cur[0], state_cur[1]])
-        goal_pos = np.array(self.goal_state[0, 0], self.goal_state[1, 0])
+        goal_pos = np.array([self.goal_state[0, 0], self.goal_state[1, 0]])
         if np.linalg.norm(goal_pos - pos_cur) < self.goal_radius:
             return True
         return False

@@ -45,14 +45,13 @@ class AbstractRobot(Robot):
             cost_evaluator_section_name = config_data.get(section_name, 'cost_evaluator')
             self.cost_evaluator = factory_from_config(cost_evaluator_factory_base, config_data,
                                                       cost_evaluator_section_name)
-            # link the goal checker of the simulated robot with the abstract robot's cost evaluator
-            self.cost_evaluator.set_goal_checker(self.dynamics.simulated_robot.cost_evaluator.goal_checker)
+            # link the goal checker of the simulated robot with the abstract robot's cost evaluator sub_goal_checker
+            self.cost_evaluator.set_sub_goal_checker(self.dynamics.simulated_robot.cost_evaluator.goal_checker)
         if config_data.has_option(section_name, 'observer'):
             observer_section_name = config_data.get(section_name, 'observer')
             self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
 
         self.dynamics.simulated_robot.state = self.start_state
-        self.dynamics.simulated_robot.steps_per_action = self.abstract_action_horizon
         self.cost_evaluator.set_collision_checker(self.dynamics.simulated_robot.cost_evaluator.collision_checker)
 
     @property
@@ -119,11 +118,15 @@ class AbstractRobot(Robot):
             else:
                 self.state = deepcopy(self.start_state)
 
+    def reset_controller(self):
+        self.dynamics.simulated_robot.reset_controller()
+
     def set_cost_evaluator(self, cost_evaluator):
         self.cost_evaluator = cost_evaluator
 
     def set_renderer(self, renderer):
         # the renderer is only responsible for renderering the robot itself and visualizing its controller info(such as MPPI)
+        self.renderer = renderer
         self.dynamics.simulated_robot.set_renderer(renderer)
 
     def render_robot_state(self):
@@ -141,7 +144,8 @@ class AbstractRobot(Robot):
     def render_goal(self):
         if self.renderer is not None:
             goal = self.cost_evaluator.goal_checker.get_goal()
-            self.renderer.render_goal(goal=goal, **{'color': "g"})
+            goal_color = self.cost_evaluator.goal_checker.get_goal_color()
+            self.renderer.render_goal(goal=goal, **{'color': goal_color})
 
     def propagate_robot(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
@@ -150,8 +154,11 @@ class AbstractRobot(Robot):
         action = action.reshape(self.get_action_dim())
         self.dynamics.simulated_robot.controller.cost_evaluator.goal_checker.set_goal(action)
         self.dynamics.simulated_robot.cost_evaluator.goal_checker.set_goal(action)
-
-        state_next, cost = self.dynamics.simulated_robot.take_action_with_controller()
+        state_next, cost = None, 0
+        for _ in range(self.abstract_action_horizon):
+            self.render_goal()
+            state_next, cost_t = self.dynamics.simulated_robot.take_action_with_controller()
+            cost += cost_t
         self.steps += 1
         return state_next, cost
 
