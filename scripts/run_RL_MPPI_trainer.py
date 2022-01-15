@@ -7,7 +7,7 @@ from robot_planning.trainers.trainer import Trainer
 
 
 def main():
-    config_path = "configs/test_RL_MPPI_trainer.cfg"
+    config_path = "configs/run_RL_MPPI_trainer.cfg"
     config_data = ConfigParser.ConfigParser()
     config_data.read(config_path)
     trainer = Trainer()

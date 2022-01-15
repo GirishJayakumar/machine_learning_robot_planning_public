@@ -156,10 +156,11 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
     def initialize_from_config(self, config_data, section_name):
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
 
-    def render_states(self, state_list=None, kinematics=None, **kwargs):
+    def render_states(self, state_list=None, kinematics_list=None, **kwargs):
         if self.active:
             for i in range(len(state_list)):
                 state = state_list[i]
+                kinematics = kinematics_list[i]
                 circle = plt.Circle((state[0], state[1]), kinematics.radius, **kwargs)
                 self._axis.add_artist(circle)
 
@@ -233,9 +234,10 @@ class CSSMPCMatplotlibRenderer(MatplotlibRenderer):
     def initialize_from_config(self, config_data, section_name):
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
 
-    def render_states(self, state_list=None, kinematics=None, **kwargs):
+    def render_states(self, state_list=None, kinematics_list=None, **kwargs):
         for i in range(len(state_list)):
             state = state_list[i]
+            kinematics = kinematics_list[i]
             circle = plt.Circle((state[-1], state[-2]), kinematics.radius, **kwargs)
             self._axis.add_artist(circle)
 
@@ -281,9 +283,10 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
         if config_data.has_option(section_name, 'path_rendering'):
             self.path_rendering = config_data.get(section_name, 'path_rendering')
 
-    def render_states(self, state_list=None, kinematics=None, **kwargs):
+    def render_states(self, state_list=None, kinematics_list=None, **kwargs):
         for i in range(len(state_list)):
             state = state_list[i]
+            kinematics = kinematics_list[i]
             circle = plt.Circle((state[-2], state[-1]), kinematics.radius, **kwargs)
             self._axis.add_artist(circle)
         if self.path_rendering:

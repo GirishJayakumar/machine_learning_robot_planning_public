@@ -4,6 +4,7 @@ import math
 import time
 import ast
 import copy
+import warnings
 from robot_planning.factory.factory_from_config import factory_from_config
 from robot_planning.factory.factories import dynamics_factory_base
 from robot_planning.factory.factories import robot_factory_base, renderer_factory_base
@@ -55,7 +56,8 @@ class Environment(object):
             states_next.append(state_next)
             costs[i] += control_cost
         for i in range(len(self.agent_list)):
-            terminal_cost = self.agent_list[i].evaluate_state_action_pair_cost(state=states_cur[i], action=actions[i], state_next=states_next[i])
+            terminal_cost = self.agent_list[i].evaluate_state_action_pair_cost(state=states_cur[i], action=actions[i],
+                                                                               state_next=states_next[i])
             costs[i] += terminal_cost
             observation_next = self.agent_list[i].observer.observe()
             observations.append(observation_next)
@@ -101,8 +103,9 @@ class Environment(object):
             collision_free = not any(
                 [agent.cost_evaluator.collision_checker.check(agent.get_state()) for agent in self.agent_list])
             n_attempts += 1
-            if n_attempts >= 10:
-                raise Exception("initial state cannot be randomly initialized! check parameters!")
+            if n_attempts >= 50:
+                warnings.warn(
+                    "initial state cannot be randomly initialized with {} trials! check parameters!".format(n_attempts))
 
         for i in range(len(self.agent_list)):
             observation = self.agent_list[i].observer.observe()

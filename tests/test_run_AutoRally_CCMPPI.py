@@ -43,6 +43,7 @@ class TestRunAutorallyCCMPPI(unittest.TestCase):
                 break
             renderer1.show()
             renderer1.clear()
+            # TODO: Scott: check with JI regarding rendering structure.
             print(state_next, "    ", cost)
 
 

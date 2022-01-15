@@ -158,6 +158,9 @@ class AbstractRobot(Robot):
         for _ in range(self.abstract_action_horizon):
             self.render_goal()
             state_next, cost_t = self.dynamics.simulated_robot.take_action_with_controller()
+            if self.renderer.active:
+                self.renderer.show()
+                self.renderer.clear()
             cost += cost_t
         self.steps += 1
         return state_next, cost

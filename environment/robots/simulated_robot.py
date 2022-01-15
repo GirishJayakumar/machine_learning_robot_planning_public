@@ -134,12 +134,10 @@ class SimulatedRobot(Robot):
             obstacle_list = self.cost_evaluator.collision_checker.get_obstacle_list()
             self.renderer.render_obstacles(obstacle_list=obstacle_list, **{'color': "k"})
 
-    def render_show_all(self):
+    def render_all(self):
         self.render_goal()
         self.render_obstacles()
         self.render_robot_state()
-        self.renderer.show()
-        self.renderer.clear()
 
     def render_goal(self):
         if self.renderer is not None:
@@ -193,13 +191,14 @@ class SimulatedRobot(Robot):
     def take_action_with_controller(self):
         state_next = None
         cost = 0
-        warm_start_itr = 50 if self.steps == 0 else 1
+        warm_start = True if self.steps == 0 else False
 
-        action = self.controller.plan(state_cur=self.get_state(), warm_start_itr=warm_start_itr)
+        action = self.controller.plan(state_cur=self.get_state(), warm_start=warm_start)
         for _ in range(self.steps_per_action):
             # print(self.get_state())
-            if self.renderer.active:
-                self.render_show_all()
+            if self.renderer is not None:
+                if self.renderer.active:
+                    self.render_all()
             state_next, control_cost = self.propagate_robot(action)
             cost += self.evaluate_state_action_pair_cost(state=state_next, action=action)
         assert state_next is not None, 'invalid state!'

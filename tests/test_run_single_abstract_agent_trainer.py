@@ -30,7 +30,7 @@ class TestRunEnvironment(unittest.TestCase):
         # test evaluator
         evaluator = Trainer()
         evaluator.initialize_from_config(config_data=config_data, section_name='trainer')
-        evaluator.load_model(episode=2, training=False)
+        evaluator.load_model(episode=1, training=False)
         evaluator.evaluate(n_eval_episodes=1, eval_episode_length=5, visualize=True, save_animation=True)
 
         print('done')

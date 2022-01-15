@@ -27,8 +27,9 @@ class MPPI(MpcController):
         stochastic_trajectories_sampler_section_name = config_data.get(section_name, 'stochastic_trajectories_sampler')
         self.stochastic_trajectories_sampler = factory_from_config(stochastic_trajectories_sampler_factory_base, config_data, stochastic_trajectories_sampler_section_name)
 
-    def plan(self, state_cur, warm_start_itr=1):
+    def plan(self, state_cur, warm_start=False):
         v = copy.deepcopy(self.initial_control_sequence)
+        warm_start_itr = self.warm_start_itr if warm_start else 1
         for _ in range(warm_start_itr):
             trajectories, us, costs = self.stochastic_trajectories_sampler.sample(state_cur, v, self.get_control_horizon(), self.get_control_dim(), self.get_dynamics(), self.get_cost_evaluator())
             beta = np.min(costs)
