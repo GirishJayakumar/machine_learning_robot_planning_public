@@ -1,5 +1,5 @@
 from robot_planning.trainers.rl_agents.base_agent import BaseAgent
-from robot_planning.environment.environment import Environment
+from robot_planning.environment.environment import BaseEnvironment
 from robot_planning.trainers.networks import ActorNet, CriticNet
 from robot_planning.trainers.utils import hard_update, soft_update, np2tensor
 
@@ -12,7 +12,7 @@ class MADDPG_Agent(BaseAgent):
     def __init__(self):
         super(MADDPG_Agent).__init__()
 
-    def initialize_from_env(self, env: Environment):
+    def initialize_from_env(self, env: BaseEnvironment):
         self.replay_buffer.initialize_from_env(env)
         self.max_action = env.agent_list[self.agent_index].dynamics.get_max_action()
         self.action_dim = env.agent_list[self.agent_index].dynamics.get_action_dim()[0]

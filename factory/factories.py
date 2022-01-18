@@ -12,7 +12,8 @@ def dynamics_factory_base(base_type):
         from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics import AutoRallyDynamics
         return AutoRallyDynamics(dynamics_type=base_type)
     elif base_type == 'autorally_dynamics_carsim':
-        from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics_carsim import AutoRallyDynamicsCarsim
+        from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics_carsim import \
+            AutoRallyDynamicsCarsim
         return AutoRallyDynamicsCarsim()
     else:
         raise ValueError('dynamics type {} not recognized'.format(base_type))
@@ -124,16 +125,19 @@ def stochastic_trajectories_sampler_factory_base(base_type):
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIStochasticTrajectoriesSampler
         return MPPIStochasticTrajectoriesSampler()
     elif base_type == 'CCMPPI_stochastic_trajectories_sampler_slow_loop':
-        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import CCMPPIStochasticTrajectoriesSamplerSLowLoop
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import \
+            CCMPPIStochasticTrajectoriesSamplerSLowLoop
         return CCMPPIStochasticTrajectoriesSamplerSLowLoop()
     elif base_type == 'CCMPPI_stochastic_trajectories_sampler':
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import CCMPPIStochasticTrajectoriesSampler
         return CCMPPIStochasticTrajectoriesSampler()
     elif base_type == 'MPPI_stochastic_trajectories_sampler_slow_loop':
-        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIStochasticTrajectoriesSamplerSlowLoop
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import \
+            MPPIStochasticTrajectoriesSamplerSlowLoop
         return MPPIStochasticTrajectoriesSamplerSlowLoop()
     elif base_type == 'MPPI_parallel_stochastic_trajectories_sampler_multiprocessing':
-        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIParallelStochasticTrajectoriesSamplerMultiprocessing
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import \
+            MPPIParallelStochasticTrajectoriesSamplerMultiprocessing
         return MPPIParallelStochasticTrajectoriesSamplerMultiprocessing()
     else:
         raise ValueError('stochastic_trajectories_sampler type {} is not recognized'.format(base_type))
@@ -153,6 +157,17 @@ def rl_agent_factory_base(base_type):
         return MADDPG_Agent()
     else:
         raise ValueError('agent type {} is not recognized'.format(base_type))
+
+
+def environment_factory_base(base_type):
+    if base_type == 'multi_agent_environment':
+        from robot_planning.environment.environment import MultiAgentEnvironment
+        return MultiAgentEnvironment()
+    if base_type == 'abstract_environment':
+        from robot_planning.environment.environment import AbstractEnvironment
+        return AbstractEnvironment()
+    else:
+        raise ValueError('environment type {} is not recognized'.format(base_type))
 
 
 def observer_factory_base(base_type):

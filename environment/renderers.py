@@ -148,7 +148,6 @@ class MatplotlibRenderer(Renderer):
         clip.write_videofile(str(self.save_dir / 'movie.mp4'))
 
 
-
 class MPPIMatplotlibRenderer(MatplotlibRenderer):
     def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
         MatplotlibRenderer.__init__(self, xaxis_range, yaxis_range, auto_range, figure_size, figure_dpi)
@@ -191,16 +190,25 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
 class EnvMatplotlibRenderer(MatplotlibRenderer):
     def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
         MatplotlibRenderer.__init__(self, xaxis_range, yaxis_range, auto_range, figure_size, figure_dpi)
+        self.n_agents = None
+        self.isAgentsUpdated = None
 
     def initialize_from_config(self, config_data, section_name):
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
+
+    def set_n_agents(self, n_agents):
+        self.n_agents = n_agents
+        self.isAgentsUpdated = [False for _ in range(self.n_agents)]
 
     def render_states(self, state_list=None, kinematics_list=None, **kwargs):
         if self.active:
             for i in range(len(state_list)):
                 state = state_list[i]
                 kinematics = kinematics_list[i]
-                circle = plt.Circle((state[0], state[1]), kinematics.radius, **kwargs)
+                if hasattr(kinematics, 'color'):
+                    circle = plt.Circle((state[0], state[1]), kinematics.radius, color=kinematics.color, **kwargs)
+                else:
+                    circle = plt.Circle((state[0], state[1]), kinematics.radius, **kwargs)
                 self._axis.add_artist(circle)
 
     def render_obstacles(self, obstacle_list=None, **kwargs):
@@ -225,6 +233,21 @@ class EnvMatplotlibRenderer(MatplotlibRenderer):
                     state = trajectory[:, i]
                     line, = self._axis.plot([state[0], previous_state[0]], [state[1], previous_state[1]], **kwargs)
                     previous_state = state
+
+    def clear(self):
+        if all(self.isAgentsUpdated):
+            plt.cla()
+            self.isAgentsUpdated = [False for _ in range(self.n_agents)]
+
+    def show(self):
+        assert self.active
+        if all(self.isAgentsUpdated):
+            self.set_range()
+            plt.pause(0.01)
+            if self.save_animation:
+                self.save()
+            self.frame += 1
+
 
 
 class CSSMPCMatplotlibRenderer(MatplotlibRenderer):

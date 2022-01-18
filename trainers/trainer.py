@@ -3,10 +3,9 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-from robot_planning.environment.environment import Environment
 from robot_planning.trainers.utils import np2tensor
 from robot_planning.factory.factory_from_config import factory_from_config
-from robot_planning.factory.factories import rl_agent_factory_base
+from robot_planning.factory.factories import rl_agent_factory_base, environment_factory_base
 import os
 from pathlib import Path
 from robot_planning.utils import DATA_ROOT_DIR
@@ -82,7 +81,8 @@ class Trainer(object):
         epsilon = self.hyper_parameters.epsilon
 
         # Start training
-        for ep in tqdm(range(0, self.hyper_parameters.n_episodes + 1), position=0, leave=True, desc="Training Episodes"):
+        for ep in tqdm(range(0, self.hyper_parameters.n_episodes + 1), position=0, leave=True,
+                       desc="Training Episodes"):
             self.env.deactivate_renderer()
             _, observations, _ = self.env.reset(random=True)
 
@@ -146,6 +146,7 @@ class Trainer(object):
                 # step
                 obs_torch = list_np2list_tensor(observations)
                 actions = self.step(obs_torch, exploration=False)
+                # actions = [np.array([-10, 2.5, 0, 0, 0]), np.array([-7.5, 5, 0, 0, 0])]
                 _, next_observations, _, rewards, = self.env.step(actions)
                 observations = deepcopy(next_observations)
 
@@ -240,7 +241,7 @@ class Trainer(object):
         env_config_data = ConfigParser.ConfigParser()
         env_config_data.read(env_config_path)
 
-        environment = Environment()
+        environment = factory_from_config(environment_factory_base, env_config_data, 'environment')
         environment.initialize_from_config(env_config_data, 'environment')
         return environment
 

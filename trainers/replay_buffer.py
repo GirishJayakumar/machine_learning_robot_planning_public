@@ -2,7 +2,7 @@ import numpy as np
 from torch import Tensor
 from torch.autograd import Variable
 import torch
-from robot_planning.environment.environment import Environment
+from robot_planning.environment.environment import BaseEnvironment
 
 
 class ReplayBuffer(object):
@@ -32,7 +32,7 @@ class ReplayBuffer(object):
         self.max_size = config_data.getint(section_name, 'buffer_size')
         self.batch_size = config_data.getint(section_name, 'batch_size')
 
-    def initialize_from_env(self, env: Environment):
+    def initialize_from_env(self, env: BaseEnvironment):
         self.n_agents = len(env.agent_list)
         self.obs_dims = [env.agent_list[i].observer.get_obs_dim()[0] for i in range(self.n_agents)]
         self.action_dims = [env.agent_list[i].dynamics.get_action_dim()[0] for i in range(self.n_agents)]

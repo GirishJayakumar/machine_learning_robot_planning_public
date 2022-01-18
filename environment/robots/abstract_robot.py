@@ -27,6 +27,7 @@ class AbstractRobot(Robot):
         self.renderer = renderer
         self.observer = observer
         self.abstract_action_horizon = abstract_action_horizon
+        self.trajectory_cost = 0
 
     def initialize_from_config(self, config_data, section_name):
         Robot.initialize_from_config(self, config_data, section_name)
@@ -147,6 +148,26 @@ class AbstractRobot(Robot):
             goal_color = self.cost_evaluator.goal_checker.get_goal_color()
             self.renderer.render_goal(goal=goal, **{'color': goal_color})
 
+    def prepare_to_take_action(self, action):
+        assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
+        # reset trajectory cost
+        self.trajectory_cost = 0
+
+        # update goal for the controller
+        action = action.reshape(self.get_action_dim())
+        self.dynamics.simulated_robot.controller.cost_evaluator.goal_checker.set_goal(action)
+        self.dynamics.simulated_robot.cost_evaluator.goal_checker.set_goal(action)
+
+    def single_step_simulated_robot(self):
+        self.render_goal()
+        state_next, cost_t = self.dynamics.simulated_robot.take_action_with_controller()
+        self.trajectory_cost += cost_t
+
+    def collect_trajectory_info(self):
+        state_next = self.get_state()
+        cost = self.trajectory_cost
+        return state_next, cost
+
     def propagate_robot(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
 
@@ -158,9 +179,6 @@ class AbstractRobot(Robot):
         for _ in range(self.abstract_action_horizon):
             self.render_goal()
             state_next, cost_t = self.dynamics.simulated_robot.take_action_with_controller()
-            if self.renderer.active:
-                self.renderer.show()
-                self.renderer.clear()
             cost += cost_t
         self.steps += 1
         return state_next, cost

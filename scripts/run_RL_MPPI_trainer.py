@@ -18,7 +18,7 @@ def main():
     # trainer.evaluate(visualize=True, n_eval_episodes=1)
 
     # test training
-    trainer.train()
+    # trainer.train()
 
     # test loading and train
     # trainer.load_model(episode=1999, training=True)
@@ -27,8 +27,8 @@ def main():
     # test evaluater
     evaluator = Trainer()
     evaluator.initialize_from_config(config_data=config_data, section_name='trainer')
-    evaluator.load_model(episode=250, training=False)
-    evaluator.evaluate(n_eval_episodes=1, eval_episode_length=30, visualize=True, save_animation=True)
+    evaluator.load_model(episode=50, training=False)
+    evaluator.evaluate(n_eval_episodes=1, eval_episode_length=30, visualize=True, save_animation=True, random=False)
 
 
     print('done!')

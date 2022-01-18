@@ -13,8 +13,9 @@ import time
 
 
 class SimulatedRobot(Robot):
-    def __init__(self, dynamics=None, start_state=None, steps_per_action=None, data_type=None, cost_evaluator=None,
-                 controller=None, renderer=None):
+    def __init__(self, robot_index=None, dynamics=None, start_state=None, steps_per_action=None, data_type=None,
+                 cost_evaluator=None,
+                 controller=None, renderer=None, observer=None):
         Robot.__init__(self)
         self.dynamics = dynamics
         self.start_state = start_state
@@ -25,6 +26,8 @@ class SimulatedRobot(Robot):
         self.steps = 0
         self.controller = controller
         self.renderer = renderer
+        self.observer = observer
+        self.robot_index = robot_index
 
     def initialize_from_config(self, config_data, section_name):
         Robot.initialize_from_config(self, config_data, section_name)
@@ -51,6 +54,8 @@ class SimulatedRobot(Robot):
         if config_data.has_option(section_name, 'observer'):
             observer_section_name = config_data.get(section_name, 'observer')
             self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
+        if config_data.has_option(section_name, 'robot_index'):
+            self.robot_index = int(config_data.get(section_name, 'robot_index'))
 
     @property
     def delta_t(self):
@@ -127,7 +132,7 @@ class SimulatedRobot(Robot):
     def render_robot_state(self):
         if self.renderer is not None:
             self.renderer.render_states(state_list=[self.get_state()],
-                                        kinematics_list=[self.controller.cost_evaluator.collision_checker.kinematics])
+                                        kinematics_list=[self.cost_evaluator.collision_checker.kinematics])
 
     def render_obstacles(self):
         if self.renderer is not None:
@@ -135,17 +140,26 @@ class SimulatedRobot(Robot):
             self.renderer.render_obstacles(obstacle_list=obstacle_list, **{'color': "k"})
 
     def render_all(self):
+        if self.robot_index is None or self.robot_index == 0:
+            self.render_obstacles()
         self.render_goal()
-        self.render_obstacles()
         self.render_robot_state()
+        if hasattr(self.renderer, 'isAgentsUpdated') and self.robot_index is not None:
+            self.renderer.isAgentsUpdated[self.robot_index] = True
+        self.renderer.show()
+        self.renderer.clear()
 
     def render_goal(self):
         if self.renderer is not None:
             goal = self.cost_evaluator.goal_checker.get_goal()
-            self.renderer.render_goal(goal=goal, **{'color': "g"})
+            goal_color = self.cost_evaluator.goal_checker.get_goal_color()
+            self.renderer.render_goal(goal=goal, color=goal_color)
 
     def propagate_robot(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
+        if self.renderer is not None:
+            if self.renderer.active:
+                self.render_all()
         state_next = self.dynamics.propagate(self.state, action)
         control_cost = 0
         self.set_state(state_next)
@@ -153,13 +167,15 @@ class SimulatedRobot(Robot):
         return state_next, control_cost
 
     def evaluate_state_action_pair_cost(self, state, action, state_next=None):
-        return self.cost_evaluator.evaluate(state.reshape((-1, 1)), action.reshape((-1, 1)), dynamics=self.dynamics)
+        cost = self.cost_evaluator.evaluate(state.reshape((-1, 1)), action.reshape((-1, 1)), dynamics=self.dynamics)
+        # print('Robot index {}, cost = {}'.format(self.robot_index, cost))
+        return cost
 
     def take_action(self, action):
         assert isinstance(action, np.ndarray), 'simulated robot has numpy.ndarray type action!'
         state_next = None
         cost = 0
-        self.render_robot_state()
+        # self.render_robot_state()
         for _ in range(self.steps_per_action):
             state_next, control_cost = self.propagate_robot(action)
             cost += self.evaluate_state_action_pair_cost(state=state_next, action=action)
@@ -170,7 +186,7 @@ class SimulatedRobot(Robot):
         assert isinstance(actions, np.ndarray), 'simulated robot has numpy.ndarray type action!'
         state_next = None
         cost = 0
-        self.render_robot_state()
+        # self.render_robot_state()
         for action in actions:
             state_next, control_cost = self.propagate_robot(action)
             cost += self.evaluate_state_action_pair_cost(state=state_next, action=action)
@@ -182,9 +198,10 @@ class SimulatedRobot(Robot):
         assert steps > 0
         for step in range(steps):
             action = self.controller.plan(state_cur=self.get_state())
-            self.render_robot_state()
-            state_next = self.dynamics.propagate(self.state, action)
-            self.set_state(state_next)
+            # self.render_robot_state()
+            # state_next = self.dynamics.propagate(self.state, action)
+            # self.set_state(state_next)
+            state_next, control_cost = self.propagate_robot(action)
             self.steps += 1
         return state_next
 
@@ -196,9 +213,6 @@ class SimulatedRobot(Robot):
         action = self.controller.plan(state_cur=self.get_state(), warm_start=warm_start)
         for _ in range(self.steps_per_action):
             # print(self.get_state())
-            if self.renderer is not None:
-                if self.renderer.active:
-                    self.render_all()
             state_next, control_cost = self.propagate_robot(action)
             cost += self.evaluate_state_action_pair_cost(state=state_next, action=action)
         assert state_next is not None, 'invalid state!'

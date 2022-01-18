@@ -4,8 +4,8 @@ except ImportError:
     import configparser as ConfigParser
 
 from robot_planning.trainers.trainer import Trainer
-from robot_planning.environment.environment import Environment
 from robot_planning.factory.factories import robot_factory_base
+from robot_planning.factory.factories import environment_factory_base
 from robot_planning.factory.factory_from_config import factory_from_config
 import numpy as np
 import unittest
@@ -24,7 +24,7 @@ class TestRunEnvironment(unittest.TestCase):
         config_path = 'configs/test_run_environment.cfg'
         config_data = ConfigParser.ConfigParser()
         config_data.read(config_path)
-        environment = Environment()
+        environment = factory_from_config(environment_factory_base, config_data, 'environment')
         environment.initialize_from_config(config_data, 'environment')
 
         actions = [np.asarray([0, 1]), np.asarray([0, -1])]
@@ -68,6 +68,7 @@ class TestRunEnvironment(unittest.TestCase):
         print('trainer initialized!')
         trainer.train()
         print('done!')
+        trainer.evaluate(visualize=True, eval_episode_length=30, n_eval_episodes=1)
 
 
 if __name__ == '__main__':

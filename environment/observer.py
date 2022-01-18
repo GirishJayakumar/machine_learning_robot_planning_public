@@ -1,5 +1,4 @@
 import numpy as np
-from robot_planning.environment.environment import Environment
 
 
 class Observer(object):

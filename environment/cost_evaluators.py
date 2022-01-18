@@ -30,6 +30,7 @@ class QuadraticCostEvaluator(CostEvaluator):
         self.R = R
         self.collision_cost = collision_cost
         self.goal_cost = goal_cost
+        self.check_other_agents = False
 
     def initialize_from_config(self, config_data, section_name):
         if config_data.has_option(section_name, 'collision_cost'):
@@ -66,6 +67,9 @@ class QuadraticCostEvaluator(CostEvaluator):
             self.collision_checker = factory_from_config(collision_checker_factory_base, config_data,
                                                          collision_checker_section_name)
 
+        if config_data.has_option(section_name, 'check_other_agents'):
+            self.check_other_agents = config_data.getboolean(section_name, 'check_other_agents')
+
     def evaluate(self, state_cur, actions=None, dyna_obstacle_list=None, dynamics=None):
         if state_cur.ndim == 1:
             state_cur = state_cur.reshape((-1, 1))
@@ -73,7 +77,7 @@ class QuadraticCostEvaluator(CostEvaluator):
                 state_cur - self.goal_checker.goal_state)
         if actions is not None:
             cost += (1 / 2) * actions.T @ self.R @ actions
-        if self.collision_checker.check(state_cur):  # True for collision, False for no collision
+        if self.collision_checker.check(state_cur, check_other_agents=self.check_other_agents):  # True for collision, False for no collision
             if self.collision_cost is not None:
                 cost += self.collision_cost
             else:

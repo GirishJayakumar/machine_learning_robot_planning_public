@@ -19,9 +19,9 @@ def main():
     agent1.set_renderer(renderer=renderer1)
     while not agent1.cost_evaluator.goal_checker.check(agent1.state):
         state_next, _ = agent1.take_action_with_controller()
-        renderer1.show()
-        time = agent1.get_time()
-        renderer1.clear()
+        # renderer1.show()
+        # time = agent1.get_time()
+        # renderer1.clear()
         print(state_next)
 
 
