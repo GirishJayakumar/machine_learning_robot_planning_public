@@ -73,6 +73,9 @@ class MatplotlibRenderer(Renderer):
         self.set_range()
         plt.savefig(save_path_name)
 
+    def close(self):
+        plt.close('all')
+
 
 class MPPIMatplotlibRenderer(MatplotlibRenderer):
     def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):

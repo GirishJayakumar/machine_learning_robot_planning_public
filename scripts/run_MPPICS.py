@@ -21,6 +21,7 @@ def main():
 
     actions = agent1.controller.plan(agent1.state).T
     state_next, cost = agent1.take_action_sequence(actions)
+    input()
     renderer1.show()
 
 if __name__ == '__main__':

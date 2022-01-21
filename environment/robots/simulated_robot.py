@@ -173,7 +173,7 @@ class SimulatedRobot(Robot):
             state_next = self.propagate_robot(action)
             self.render_robot_state()
             self.renderer.show()
-            self.renderer.clear()
+            # self.renderer.clear()
             cost += self.evaluate_state_action_pair_cost(state_next, action)
         if state_next is None:
             print('invalid state!')
