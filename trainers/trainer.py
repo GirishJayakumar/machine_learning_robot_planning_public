@@ -157,7 +157,7 @@ class Trainer(object):
 
             if save_animation:
                 self.env.renderer.render_gif()
-                self.env.renderer.render_mp4()
+                # self.env.renderer.render_mp4()
 
             episode_return.insert(0, ep)
             returns.append(episode_return)
