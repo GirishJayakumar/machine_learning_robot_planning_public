@@ -1,5 +1,4 @@
 import numpy as np
-from robot_planning.environment.environment import Environment
 
 
 class Observer(object):
@@ -39,4 +38,15 @@ class LocalStateObserver(Observer):
 
     def get_obs_dim(self):
         obs_dim = self.agent_list[self.agent_index].dynamics.get_state_dim()[0]
+        return (obs_dim,)
+
+
+class AbstractFullStateObserver(Observer):
+    def observe(self):
+        states = [self.agent_list[_].get_state() for _ in range(len(self.agent_list))]
+        obs = np.concatenate(states)
+        return obs
+
+    def get_obs_dim(self):
+        obs_dim = sum([self.agent_list[_].dynamics.get_state_dim()[0] for _ in range(len(self.agent_list))])
         return (obs_dim,)

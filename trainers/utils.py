@@ -22,3 +22,8 @@ def hard_update(target_net: Module, source_net: Module):
 def soft_update(target_net: Module, source_net: Module, tau):
     for target_param, source_param in zip(target_net.parameters(), source_net.parameters()):
         target_param.data.copy_(target_param.data * (1 - tau) + source_param.data * tau)
+
+def print_table(header, data):
+    from tabulate import tabulate
+    assert len(header) == len(data[0])
+    print(tabulate(data, headers=header, floatfmt=".3f"))

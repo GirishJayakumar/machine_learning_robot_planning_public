@@ -5,11 +5,12 @@ import copy
 
 
 class Controller(object):
-    def __init__(self, dynamics=None, cost_evaluator=None, control_dim=None, renderer=None):
+    def __init__(self, dynamics=None, cost_evaluator=None, control_dim=None, renderer=None, warm_start_itr=1):
         self.dynamics = dynamics
         self.cost_evaluator = cost_evaluator
         self.control_dim = control_dim
         self.renderer = renderer
+        self.warm_start_itr = warm_start_itr
 
     def initialize_from_config(self, config_data, section_name):
         dynamics_section_name = config_data.get(section_name, 'dynamics')
@@ -17,10 +18,14 @@ class Controller(object):
         cost_evaluator_section_name = config_data.get(section_name, 'cost_evaluator')
         self.cost_evaluator = factory_from_config(cost_evaluator_factory_base, config_data, cost_evaluator_section_name)
         self.control_dim = config_data.getint(section_name, 'control_dim')
+        if config_data.has_option(section_name, 'warm_start_itr'):
+            self.warm_start_itr = config_data.getint(section_name, 'warm_start_itr')
+        else:
+            self.warm_start_itr = 1
         if self.control_dim != self.dynamics.get_action_dim()[0]:
             raise ValueError('The Controller \'s control dimension and dynamics\' control dimension do not match! ')
 
-    def plan(self, state_cur):
+    def plan(self, state_cur, warm_start=False):
         raise NotImplementedError
 
     def get_control_dim(self):
@@ -44,6 +49,9 @@ class Controller(object):
     def set_renderer(self, renderer):
         self.renderer = renderer
 
+    def reset(self):
+        raise NotImplementedError
+
 
 class MpcController(Controller):
     def __init__(self, control_horizon=None, dynamics=None, cost_evaluator=None, control_dim=None, renderer=None):
@@ -54,7 +62,7 @@ class MpcController(Controller):
         Controller.initialize_from_config(self, config_data, section_name)
         self.control_horizon = config_data.getint(section_name, 'control_horizon')
 
-    def plan(self, state_cur):
+    def plan(self, state_cur, warm_start=False):
         raise NotImplementedError
 
     def get_control_horizon(self):

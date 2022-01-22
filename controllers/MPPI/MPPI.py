@@ -27,13 +27,17 @@ class MPPI(MpcController):
         stochastic_trajectories_sampler_section_name = config_data.get(section_name, 'stochastic_trajectories_sampler')
         self.stochastic_trajectories_sampler = factory_from_config(stochastic_trajectories_sampler_factory_base, config_data, stochastic_trajectories_sampler_section_name)
 
-    def plan(self, state_cur):
+    def plan(self, state_cur, warm_start=False):
         v = copy.deepcopy(self.initial_control_sequence)
-        trajectories, us, costs = self.stochastic_trajectories_sampler.sample(state_cur, v, self.get_control_horizon(), self.get_control_dim(), self.get_dynamics(), self.get_cost_evaluator())
-        beta = np.min(costs)
-        eta = np.sum(np.exp(-1/self.inverse_temperature * (costs - beta)))
-        omega = 1/eta * np.exp(-1/self.inverse_temperature * (costs - beta))
-        v = np.sum(omega.reshape((us.shape[0], 1, 1)) * us, axis=0)  # us shape = (number_of_trajectories, control_dim, control_horizon)
+        warm_start_itr = self.warm_start_itr if warm_start else 1
+        for _ in range(warm_start_itr):
+            trajectories, us, costs = self.stochastic_trajectories_sampler.sample(state_cur, v, self.get_control_horizon(), self.get_control_dim(), self.get_dynamics(), self.get_cost_evaluator())
+            beta = np.min(costs)
+            eta = np.sum(np.exp(-1/self.inverse_temperature * (costs - beta)))
+            omega = 1/eta * np.exp(-1/self.inverse_temperature * (costs - beta))
+            v = np.sum(omega.reshape((us.shape[0], 1, 1)) * us, axis=0)  # us shape = (number_of_trajectories, control_dim, control_horizon)
+            self.set_initial_control_sequence(v)
+
         optimal_trajectory = self.rollout_out(state_cur, v)
         if self.renderer is not None:
             self.renderer.render_trajectories(trajectories, **{'color': "b"})
@@ -43,6 +47,9 @@ class MPPI(MpcController):
         v = np.hstack((v, v[:, -1].reshape(v.shape[0], 1)))
         self.set_initial_control_sequence(v)
         return u
+
+    def reset(self):
+        self.initial_control_sequence = np.zeros((self.get_control_dim(), self.get_control_horizon() - 1))
 
     def set_initial_control_sequence(self, initial_control_sequence):
         self.initial_control_sequence = initial_control_sequence

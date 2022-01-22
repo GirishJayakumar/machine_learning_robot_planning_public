@@ -61,6 +61,6 @@ class CriticNet(BaseNetwork):
         actions = torch.cat(actions, dim=1)
 
         x = torch.cat([obs, actions], dim=1)
-        q = self.network(x)
+        q = self.network(x.float())
 
         return q

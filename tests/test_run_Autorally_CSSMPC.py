@@ -30,8 +30,8 @@ class TestRunCSSMPC(unittest.TestCase):
         agent1.set_renderer(renderer=renderer1)
         while not np.linalg.norm(agent1.cost_evaluator.goal_checker.goal_state[-2:] - agent1.state[-2:]) < 1:
             state_next, _ = agent1.take_action_with_controller()
-            renderer1.show()
-            renderer1.clear()
+            # renderer1.show()
+            # renderer1.clear()
             print(state_next)
 
 

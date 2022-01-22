@@ -11,12 +11,15 @@ class Kinematics(object):
 
 
 class PointKinematics(Kinematics):
-    def __init__(self, radius=None):
+    def __init__(self, radius=None, color='b'):
         Kinematics.__init__(self)
         self.radius = radius
+        self.color = color
 
     def initialize_from_config(self, config_data, section_name):
         self.radius = config_data.getfloat(section_name, 'radius')
+        if config_data.has_option(section_name, 'color'):
+            self.color = config_data.get(section_name, 'color')
 
     def get_radius(self):
         return copy.copy(self.radius)
