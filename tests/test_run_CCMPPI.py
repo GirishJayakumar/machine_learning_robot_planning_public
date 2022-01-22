@@ -19,7 +19,7 @@ class TestRunCCMPPI(unittest.TestCase):
     def tearDownClass(cls):
         print("tearDownClass")
 
-    def test_run_MPPI(self):
+    def test_run_CCMPPI(self):
         config_path = "configs/test_run_CCMPPI.cfg"
         config_data = ConfigParser.ConfigParser()
         config_data.read(config_path)
@@ -28,8 +28,8 @@ class TestRunCCMPPI(unittest.TestCase):
         agent1.set_renderer(renderer=renderer1)
         while not agent1.cost_evaluator.goal_checker.check(agent1.state.reshape((-1, 1))):
             state_next, cost = agent1.take_action_with_controller()
-            renderer1.show()
-            renderer1.clear()
+            # renderer1.show()
+            # renderer1.clear()
             print(state_next, "    ", cost)
 
 

@@ -60,7 +60,7 @@ class CSSMPC(MpcController):
         self.solver = cs_solver.CSSolver(self.n, self.m, self.l, self.N, self.u_range, self.slew_rate, (False, ),
                                          mean_only=True, k_form=1, prob_lvl=self.prob_lvl, chance_const_N=self.N)
 
-    def plan(self, state_cur):
+    def plan(self, state_cur, warm_start=False):
         state_cur = state_cur.reshape((-1, 1))
         us = self.initial_control_sequence.copy()
         xs = self.roll_out(state_cur, us, self.dt)
@@ -155,7 +155,7 @@ class CSSMPCAutorally(MpcController):
         self.solver = cs_solver.CSSolver(self.n, self.m, self.l, self.N, self.u_range, self.slew_rate, (False, ),
                                          mean_only=False, k_form=1, prob_lvl=self.prob_lvl, chance_const_N=self.N)
 
-    def plan(self, state_cur):
+    def plan(self, state_cur, warm_start=False):
         state_cur = state_cur.reshape((-1, 1))
         e_psi, e_y, s = self.dynamics.track.localize(np.array((state_cur[-2, :], state_cur[-1, :])), state_cur[-3, :])
         state_cur_map = state_cur.copy()

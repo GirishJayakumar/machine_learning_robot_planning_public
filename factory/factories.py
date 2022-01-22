@@ -2,11 +2,18 @@ def dynamics_factory_base(base_type):
     if base_type == 'bicycle_dynamics':
         from robot_planning.environment.dynamics.bicycle_dynamics import BicycleDynamics
         return BicycleDynamics()
+    elif base_type == 'point_dynamics':
+        from robot_planning.environment.dynamics.point_dynamics import PointDynamics
+        return PointDynamics()
+    elif base_type == 'abstract_dynamics':
+        from robot_planning.environment.dynamics.abstract_dynamics import AbstractDynamics
+        return AbstractDynamics()
     elif base_type == 'autorally_dynamics_cartesian' or base_type == 'autorally_dynamics_map':
         from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics import AutoRallyDynamics
         return AutoRallyDynamics(dynamics_type=base_type)
     elif base_type == 'autorally_dynamics_carsim':
-        from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics_carsim import AutoRallyDynamicsCarsim
+        from robot_planning.environment.dynamics.autorally_dynamics.autorally_dynamics_carsim import \
+            AutoRallyDynamicsCarsim
         return AutoRallyDynamicsCarsim()
     else:
         raise ValueError('dynamics type {} not recognized'.format(base_type))
@@ -19,6 +26,12 @@ def cost_evaluator_factory_base(base_type):
     elif base_type == 'autorally_mppi_cost_evaluator':
         from robot_planning.environment.cost_evaluators import AutorallyMPPICostEvaluator
         return AutorallyMPPICostEvaluator()
+    elif base_type == 'terminal_cost':
+        from robot_planning.environment.cost_evaluators import TerminalCostEvaluator
+        return TerminalCostEvaluator()
+    elif base_type == 'abstract_cost':
+        from robot_planning.environment.cost_evaluators import AbstractCostEvaluator
+        return AbstractCostEvaluator()
     else:
         raise ValueError('cost_evaluator type {} not recognized'.format(base_type))
 
@@ -47,6 +60,9 @@ def renderer_factory_base(base_type):
     elif base_type == 'autorally_matplotlib':
         from robot_planning.environment.renderers import AutorallyMatplotlibRenderer
         return AutorallyMatplotlibRenderer()
+    elif base_type == 'Envmatplotlib':
+        from robot_planning.environment.renderers import EnvMatplotlibRenderer
+        return EnvMatplotlibRenderer()
     else:
         raise ValueError('Visualizer type {} not recognized'.format(base_type))
 
@@ -55,6 +71,12 @@ def goal_checker_factory_base(base_type):
     if base_type == 'state_space_goal_checker':
         from robot_planning.environment.goal_checker import StateSpaceGoalChecker
         return StateSpaceGoalChecker()
+    elif base_type == 'flex_state_space_goal_checker':
+        from robot_planning.environment.goal_checker import FlexStateSpaceGoalChecker
+        return FlexStateSpaceGoalChecker()
+    elif base_type == 'position_goal_checker':
+        from robot_planning.environment.goal_checker import PositionGoalChecker
+        return PositionGoalChecker()
     elif base_type == 'autorally_cartesian_goal_checker':
         from robot_planning.environment.goal_checker import AutorallyCartesianGoalChecker
         return AutorallyCartesianGoalChecker()
@@ -66,6 +88,9 @@ def robot_factory_base(base_type):
     if base_type == 'simulated_robot':
         from robot_planning.environment.robots.simulated_robot import SimulatedRobot
         return SimulatedRobot()
+    if base_type == "abstract_robot":
+        from robot_planning.environment.robots.abstract_robot import AbstractRobot
+        return AbstractRobot()
     else:
         raise ValueError('robot type {} is not recognized'.format(base_type))
 
@@ -91,6 +116,12 @@ def controller_factory_base(base_type):
     elif base_type == 'CSSMPC_Aurorally':
         from robot_planning.controllers.CSSMPC.CSSMPC import CSSMPCAutorally
         return CSSMPCAutorally()
+    elif base_type == 'MPPICS_SMPC':
+        from robot_planning.controllers.MPPICS.MPPICS_SMPC import MPPICS_SMPC
+        return MPPICS_SMPC()
+    elif base_type == 'MPPICS':
+        from robot_planning.controllers.MPPICS.MPPICS import MPPICS
+        return MPPICS()
     else:
         raise ValueError('controller type {} is not recognized'.format(base_type))
 
@@ -100,16 +131,19 @@ def stochastic_trajectories_sampler_factory_base(base_type):
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIStochasticTrajectoriesSampler
         return MPPIStochasticTrajectoriesSampler()
     elif base_type == 'CCMPPI_stochastic_trajectories_sampler_slow_loop':
-        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import CCMPPIStochasticTrajectoriesSamplerSLowLoop
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import \
+            CCMPPIStochasticTrajectoriesSamplerSLowLoop
         return CCMPPIStochasticTrajectoriesSamplerSLowLoop()
     elif base_type == 'CCMPPI_stochastic_trajectories_sampler':
         from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import CCMPPIStochasticTrajectoriesSampler
         return CCMPPIStochasticTrajectoriesSampler()
     elif base_type == 'MPPI_stochastic_trajectories_sampler_slow_loop':
-        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIStochasticTrajectoriesSamplerSlowLoop
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import \
+            MPPIStochasticTrajectoriesSamplerSlowLoop
         return MPPIStochasticTrajectoriesSamplerSlowLoop()
     elif base_type == 'MPPI_parallel_stochastic_trajectories_sampler_multiprocessing':
-        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import MPPIParallelStochasticTrajectoriesSamplerMultiprocessing
+        from robot_planning.controllers.MPPI.stochastic_trajectories_sampler import \
+            MPPIParallelStochasticTrajectoriesSamplerMultiprocessing
         return MPPIParallelStochasticTrajectoriesSamplerMultiprocessing()
     else:
         raise ValueError('stochastic_trajectories_sampler type {} is not recognized'.format(base_type))
@@ -131,6 +165,17 @@ def rl_agent_factory_base(base_type):
         raise ValueError('agent type {} is not recognized'.format(base_type))
 
 
+def environment_factory_base(base_type):
+    if base_type == 'multi_agent_environment':
+        from robot_planning.environment.environment import MultiAgentEnvironment
+        return MultiAgentEnvironment()
+    if base_type == 'abstract_environment':
+        from robot_planning.environment.environment import AbstractEnvironment
+        return AbstractEnvironment()
+    else:
+        raise ValueError('environment type {} is not recognized'.format(base_type))
+
+
 def observer_factory_base(base_type):
     if base_type == 'full_state_observer':
         from robot_planning.environment.observer import FullStateObserver
@@ -138,6 +183,9 @@ def observer_factory_base(base_type):
     if base_type == 'local_state_observer':
         from robot_planning.environment.observer import LocalStateObserver
         return LocalStateObserver()
+    if base_type == 'abstract_full_state_observer':
+        from robot_planning.environment.observer import AbstractFullStateObserver
+        return AbstractFullStateObserver()
     else:
         raise ValueError('observer type {} is not recognized'.format(base_type))
 

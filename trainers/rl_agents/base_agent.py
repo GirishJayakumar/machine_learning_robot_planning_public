@@ -1,4 +1,3 @@
-from robot_planning.environment.environment import Environment
 from robot_planning.trainers.replay_buffer import ReplayBuffer
 from robot_planning.trainers.utils import list_np2list_tensor, soft_update
 import ast
@@ -48,7 +47,7 @@ class BaseAgent:
         self.replay_buffer = ReplayBuffer()
         self.replay_buffer.initialize_from_config(config_data, section_name)
 
-    def initialize_from_env(self, env: Environment):
+    def initialize_from_env(self, env):
         raise NotImplementedError
 
     def set_agent_list(self, agent_list):

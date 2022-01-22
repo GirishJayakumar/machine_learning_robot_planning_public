@@ -33,16 +33,17 @@ class TestRunAutorallyCCMPPI(unittest.TestCase):
         agent1.set_renderer(renderer=renderer1)
         goal_checker_for_checking_vehicle_position = factory_from_config(goal_checker_factory_base, config_data, 'my_goal_checker_for_checking_vehicle_position')
         while not logger.goal_checker.check(agent1.state.reshape((-1, 1))):
+            renderer1.render_goal(goal_checker_for_checking_vehicle_position.get_goal())
             state_next, cost = agent1.take_action_with_controller()
             logger.calculate_number_of_laps(state_next, dynamics=agent1.dynamics, goal_checker=agent1.cost_evaluator.goal_checker)
             logger.calculate_number_of_collisions(state_next, dynamics=agent1.dynamics, collision_checker=agent1.cost_evaluator.collision_checker)
-            renderer1.render_goal(goal_checker_for_checking_vehicle_position.get_goal())
             logger.log()
             if logger.crash == 1:
                 print("vehicle crashed!")
                 break
-            renderer1.show()
-            renderer1.clear()
+            # renderer1.show()
+            # renderer1.clear()
+            # TODO: Scott: check with JI regarding rendering structure.
             print(state_next, "    ", cost)
 
 

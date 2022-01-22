@@ -15,9 +15,10 @@ class CvxpyCovarianceSteeringHelper():
         dynamics_linearizer_section_name = config_data.get(section_name, 'dynamics_linearizer')
         self.dynamics_linearizer = factory_from_config(dynamics_linearizer_factory_base, config_data, dynamics_linearizer_section_name)
         self.set_dynamics_linearizer(self.dynamics_linearizer)
-        if config_data.has_option(section_name, 'sigma_epsilon'):
-            self.sigma_epsilon = np.asarray(ast.literal_eval(config_data.get(section_name, 'sigma_epsilon')), dtype=np.float64)
-
+        if config_data.has_option(section_name, 'Qf_val'):
+            self.Qf_val = config_data.getfloat(section_name, 'Qf_val')
+        if config_data.has_option(section_name, 'R_val'):
+            self.R_val = config_data.getfloat(section_name, 'R_val')
     def set_dynamics_linearizer(self, dynamics_linearizer):
         self.dynamics_linearizer = dynamics_linearizer
         self.n = self.dynamics_linearizer.n
@@ -29,15 +30,14 @@ class CvxpyCovarianceSteeringHelper():
         N = ref_ctrl_vec.shape[0]
 
         As, Bs, ds = self.dynamics_linearizer.linearize_dynamics(ref_state_vec, ref_ctrl_vec)
-        A, B, C, d, D = self.dynamics_linearizer.make_batch_dynamics(As, Bs, ds, Sigma_epsilon=Sigma_epsilon) #TODO: set Sigma_epsilon = self.sigma_epsilon in the input arguments
+        A, B, C, d, D = self.dynamics_linearizer.make_batch_dynamics(As, Bs, ds, Sigma_epsilon=Sigma_epsilon)
 
         # cost matrix
         # soft constraint Q matrix
-        # TODO: make the costs Q, R hyperparameters
         Q_bar = np.zeros([(N + 1) * self.n, (N + 1) * self.n])
-        Q_bar[-self.n:, -self.n:] = np.eye(self.n) * 10
+        Q_bar[-self.n:, -self.n:] = np.eye(self.n) * self.Qf_val
 
-        R = np.eye(m)
+        R = np.eye(m) * self.R_val
         R_bar = np.kron(np.eye(N, dtype=int), R)
 
         # technically incorrect, but we can just specify R_bar_1/2 instead of R_bar
