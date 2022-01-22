@@ -249,7 +249,6 @@ class EnvMatplotlibRenderer(MatplotlibRenderer):
             self.frame += 1
 
 
-
 class CSSMPCMatplotlibRenderer(MatplotlibRenderer):
     def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
         MatplotlibRenderer.__init__(self, xaxis_range, yaxis_range, auto_range, figure_size, figure_dpi)
