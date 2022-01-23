@@ -7,6 +7,7 @@ from robot_planning.factory.factories import robot_factory_base
 from robot_planning.factory.factories import renderer_factory_base
 from robot_planning.factory.factory_from_config import factory_from_config
 import unittest
+import time
 import numpy as np
 
 
@@ -20,6 +21,7 @@ class TestRunMPPI(unittest.TestCase):
         print("tearDownClass")
 
     def test_run_MPPI(self):
+        start = time.time()
         config_path = "configs/test_run_MPPI.cfg"
         config_data = ConfigParser.ConfigParser()
         config_data.read(config_path)
@@ -31,6 +33,7 @@ class TestRunMPPI(unittest.TestCase):
             # renderer1.show()
             # renderer1.clear()
             print(state_next, "    ", cost)
+        print("time spent: ", time.time()-start)
 
 
 if __name__ == '__main__':

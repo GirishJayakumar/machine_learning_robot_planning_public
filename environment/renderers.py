@@ -152,11 +152,14 @@ class MatplotlibRenderer(Renderer):
 
 
 class MPPIMatplotlibRenderer(MatplotlibRenderer):
-    def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None):
+    def __init__(self, xaxis_range=None, yaxis_range=None, auto_range=None, figure_size=None, figure_dpi=None, trajectories_rendering=True):
         MatplotlibRenderer.__init__(self, xaxis_range, yaxis_range, auto_range, figure_size, figure_dpi)
+        self.trajectories_rendering = trajectories_rendering
 
     def initialize_from_config(self, config_data, section_name):
         MatplotlibRenderer.initialize_from_config(self, config_data, section_name)
+        if config_data.has_option(section_name, 'trajectories_rendering'):
+            self.trajectories_rendering = config_data.getboolean(section_name, 'trajectories_rendering')
 
     def render_states(self, state_list=None, kinematics_list=None, **kwargs):
         if self.active:
@@ -181,7 +184,7 @@ class MPPIMatplotlibRenderer(MatplotlibRenderer):
             self._axis.add_artist(circle)
 
     def render_trajectories(self, trajectory_list=None, **kwargs):
-        if self.active:
+        if self.active and self.trajectories_rendering:
             for trajectory in trajectory_list:
                 previous_state = trajectory[:, 0]
                 for i in range(1, trajectory.shape[1]):

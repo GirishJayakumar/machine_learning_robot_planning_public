@@ -119,3 +119,24 @@ class AutorallyCollisionChecker(PointCollisionChecker):
         else:
             collisions = np.where((state_cur[-2, :] < -self.track_width) | (self.track_width < state_cur[-2, :]), 1, 0)
             return collisions
+
+
+class MPPICollisionChecker(PointCollisionChecker):
+    def __init__(self, obstacles=None, kinematics=None):
+        CollisionChecker.__init__(self, obstacles, kinematics)
+
+    def check(self, state_cur, check_other_agents=False):  # True for collision, False for no collision
+        if state_cur.ndim == 1 or state_cur.shape[1] <= 1:
+            state_cur = np.squeeze(state_cur)
+            for i in range(len(self.obstacles)):
+                if self.obstacles_radius[i] == 0:
+                    continue
+                if np.linalg.norm(self.obstacles[i] - state_cur[:2]) < self.obstacles_radius[
+                    i] + self.kinematics.get_radius():
+                    return True
+            return False
+        else:
+            collisions = np.zeros(state_cur.shape[1])
+            for i in range(len(self.obstacles)):
+                collisions = collisions + np.where(np.linalg.norm(self.obstacles[i].reshape((-1, 1)) - state_cur[:2, :], axis=0) < self.obstacles_radius[i] + self.kinematics.get_radius(), 1, 0)
+            return collisions
