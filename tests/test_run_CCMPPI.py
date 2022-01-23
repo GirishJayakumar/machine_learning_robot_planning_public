@@ -20,7 +20,7 @@ class TestRunCCMPPI(unittest.TestCase):
         print("tearDownClass")
 
     def test_run_CCMPPI(self):
-        config_path = "configs/test_run_CCMPPI.cfg"
+        config_path = "configs/test_run_CCMPPI_slow_loop.cfg"
         config_data = ConfigParser.ConfigParser()
         config_data.read(config_path)
         agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')
@@ -31,6 +31,20 @@ class TestRunCCMPPI(unittest.TestCase):
             # renderer1.show()
             # renderer1.clear()
             print(state_next, "    ", cost)
+
+    # TODO: the vectorized CCMPPI has bugs to be fixed, it is harder for it to reach the goal as the slow loop implementation under same conditions
+    # def test_run_vectorized_CCMPPI(self):
+    #     config_path = "configs/test_run_CCMPPI_vectorized.cfg"
+    #     config_data = ConfigParser.ConfigParser()
+    #     config_data.read(config_path)
+    #     agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')
+    #     renderer1 = factory_from_config(renderer_factory_base, config_data, 'renderer1')
+    #     agent1.set_renderer(renderer=renderer1)
+    #     while not agent1.cost_evaluator.goal_checker.check(agent1.state.reshape((-1, 1))):
+    #         state_next, cost = agent1.take_action_with_controller()
+    #         # renderer1.show()
+    #         # renderer1.clear()
+    #         print(state_next, "    ", cost)
 
 
 if __name__ == '__main__':

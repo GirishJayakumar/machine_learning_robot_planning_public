@@ -32,6 +32,9 @@ def cost_evaluator_factory_base(base_type):
     elif base_type == 'abstract_cost':
         from robot_planning.environment.cost_evaluators import AbstractCostEvaluator
         return AbstractCostEvaluator()
+    elif base_type == 'mppi_cost_evaluator':
+        from robot_planning.environment.cost_evaluators import MPPICostEvaluator
+        return MPPICostEvaluator()
     else:
         raise ValueError('cost_evaluator type {} not recognized'.format(base_type))
 
@@ -46,6 +49,9 @@ def collision_checker_factory_base(base_type):
     elif base_type == 'autorally_collision_checker':
         from robot_planning.environment.collision_checker import AutorallyCollisionChecker
         return AutorallyCollisionChecker()
+    elif base_type == 'mppi_collision_checker':
+        from robot_planning.environment.collision_checker import MPPICollisionChecker
+        return MPPICollisionChecker()
     else:
         raise ValueError('collsion_checker type {} not recognized'.format(base_type))
 

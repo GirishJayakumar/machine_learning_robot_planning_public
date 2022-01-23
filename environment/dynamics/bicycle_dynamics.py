@@ -29,15 +29,25 @@ class BicycleDynamics(NumpySimulatedDynamics):
             self.state_bounds = np.asarray(ast.literal_eval(config_data.get(section_name, 'state_bounds')))
 
     def propagate(self, state, action, delta_t=None):
-        if state.size != 5:
-            raise ValueError("Wrong state size! The bicycle model state has a dimensionality of 5")
-        if action.size != 2:
-            raise ValueError("Wrong state size! The bicycle model input has a dimensionality of 2")
-        x = state[0]
-        y = state[1]
-        Phi = state[2]
-        delta = state[3]
-        v = state[4]
+        # if state.size != 5:
+        #     raise ValueError("Wrong state size! The bicycle model state has a dimensionality of 5")
+        # if action.size != 2:
+        #     raise ValueError("Wrong state size! The bicycle model input has a dimensionality of 2")
+        single_state = False
+        if state.ndim == 1:
+            single_state = True
+        if single_state:
+            x = state[0]
+            y = state[1]
+            Phi = state[2]
+            delta = state[3]
+            v = state[4]
+        else:
+            x = state[0, :]
+            y = state[1, :]
+            Phi = state[2, :]
+            delta = state[3, :]
+            v = state[4, :]
 
         lr = np.dot(self.car_length, self.cog_pos)
         beta = np.arctan(lr * np.tan(delta) / self.car_length)
@@ -53,9 +63,40 @@ class BicycleDynamics(NumpySimulatedDynamics):
         Phi = Phi + dPhidt * self.delta_t
         delta = delta + ddeltadt * self.delta_t
         v = v + dvdt * self.delta_t
-
-        state_next = np.array([x, y, Phi, delta, v]).reshape((5,))
+        if single_state:
+            state_next = np.array([x, y, Phi, delta, v]).reshape((5,))
+        else:
+            state_next = np.array([x, y, Phi, delta, v]).reshape((5, -1))
         return state_next
+
+    # def propagate(self, state, action, delta_t=None):
+    #     if state.size != 5:
+    #         raise ValueError("Wrong state size! The bicycle model state has a dimensionality of 5")
+    #     if action.size != 2:
+    #         raise ValueError("Wrong state size! The bicycle model input has a dimensionality of 2")
+    #     x = state[0]
+    #     y = state[1]
+    #     Phi = state[2]
+    #     delta = state[3]
+    #     v = state[4]
+    #
+    #     lr = np.dot(self.car_length, self.cog_pos)
+    #     beta = np.arctan(lr * np.tan(delta) / self.car_length)
+    #
+    #     dxdt = v * np.cos(beta + Phi)
+    #     dydt = v * np.sin(beta + Phi)
+    #     dPhidt = v * np.tan(delta) * np.cos(beta) / self.car_length
+    #     ddeltadt = action[0]
+    #     dvdt = action[1]/self.mass
+    #
+    #     x = x + dxdt * self.delta_t
+    #     y = y + dydt * self.delta_t
+    #     Phi = Phi + dPhidt * self.delta_t
+    #     delta = delta + ddeltadt * self.delta_t
+    #     v = v + dvdt * self.delta_t
+    #
+    #     state_next = np.array([x, y, Phi, delta, v]).reshape((5,))
+    #     return state_next
 
     def get_state_dim(self):
         return (5,)
