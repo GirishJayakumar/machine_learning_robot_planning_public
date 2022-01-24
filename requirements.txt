@@ -1,11 +1,11 @@
 matplotlib
 numpy
 scipy
-torch==1.8.1
 tqdm
 tabulate
-mosek
 pytest
 imageio
 moviepy
 cvxpy
+torch==1.10.1
+Mosek
