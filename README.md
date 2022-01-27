@@ -10,8 +10,7 @@ with the decentralized controller,
 
 ### Install prerequisites
 In terminal, change directory to `robot_planning` and run `pip install -r requirements.txt`. Pytorch and Mosek Fusion will need to be installed manually.
-1. Install Mosek `pip install Mosek`
-	2. Obtain a personal academic license and place it in the required folder https://docs.mosek.com/9.3/licensing/quickstart.html#i-don-t-have-a-license-file-yet
+1. Install Mosek `pip install Mosek`. Obtain a personal academic license and place it in the required folder https://docs.mosek.com/9.3/licensing/quickstart.html#i-don-t-have-a-license-file-yet
 2. Intall pytorch with the correct options selected for your machine https://pytorch.org/get-started/locally/
 
 ### Install the robot_planning repo
