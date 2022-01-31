@@ -119,7 +119,7 @@ def controller_factory_base(base_type):
     elif base_type == 'CSSMPC':
         from robot_planning.controllers.CSSMPC.CSSMPC import CSSMPC
         return CSSMPC()
-    elif base_type == 'CSSMPC_Aurorally':
+    elif base_type == 'CSSMPC_Autorally':
         from robot_planning.controllers.CSSMPC.CSSMPC import CSSMPCAutorally
         return CSSMPCAutorally()
     elif base_type == 'MPPICS_SMPC':
