@@ -22,13 +22,13 @@ class TestRunCSSMPC(unittest.TestCase):
         print("tearDownClass")
 
     def test_run_CSSMPC(self):
-        config_path = "configs/test_run_Autorally_CSSMPC.cfg"
+        config_path = "../scripts/configs/run_Autorally_CSSMPC.cfg"
         config_data = ConfigParser.ConfigParser()
         config_data.read(config_path)
         agent1 = factory_from_config(robot_factory_base, config_data, 'agent1')
         renderer1 = factory_from_config(renderer_factory_base, config_data, 'renderer1')
         agent1.set_renderer(renderer=renderer1)
-        while not np.linalg.norm(agent1.cost_evaluator.goal_checker.goal_state[-2:] - agent1.state[-2:]) < 1:
+        while not agent1.cost_evaluator.goal_checker.check(agent1.state):
             state_next, _ = agent1.take_action_with_controller()
             # renderer1.show()
             # renderer1.clear()
