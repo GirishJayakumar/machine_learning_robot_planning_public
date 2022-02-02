@@ -99,7 +99,7 @@ class SimulatedRobot(Robot):
     def reset_time(self):
         self.steps = 0
 
-    def reset_state(self, initial_state, random):
+    def reset_state(self, initial_state=None, random=False):
         if random:
             state_shape = self.dynamics.get_state_dim()
             state_bounds = self.dynamics.get_state_bounds()
