@@ -22,7 +22,7 @@ def main():
         logger = factory_from_config(logger_factory_base, config_data, 'logger')
         agent1.set_renderer(renderer=renderer1)
         logger.set_agent(agent=agent1)
-        while True:
+        while not agent1.cost_evaluator.goal_checker.check(agent1.state):
             try:
                 state_next, cost = agent1.take_action_with_controller()
             except RuntimeError:
