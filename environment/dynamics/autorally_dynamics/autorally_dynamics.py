@@ -34,11 +34,11 @@ class AutoRallyDynamics(NumpySimulatedDynamics):
         self.throttle_nn = None
         self.track = None
         if dynamics_type == 'autorally_dynamics_map':
-            self.cartesian = True
+            self.cartesian = False
         elif dynamics_type == 'autorally_dynamics_cartesian':
-            self.cartesian = False
+            self.cartesian = True
         else:
-            self.cartesian = False
+            self.cartesian = True
 
     def initialize_from_config(self, config_data, section_name):
         NumpySimulatedDynamics.initialize_from_config(self, config_data, section_name)
@@ -191,7 +191,8 @@ class AutoRallyDynamics(NumpySimulatedDynamics):
                 next_state[:, 6] = X + deltaT * (np.cos(psi) * vx - np.sin(psi) * vy)
                 next_state[:, 7] = Y + deltaT * (np.sin(psi) * vx + np.cos(psi) * vy)
             else:
-                rho = np.zeros_like(s).flatten()
+                # rho = np.zeros_like(s).flatten()
+                rho = self.track.get_cur_reg_from_s(s)[4].flatten()
                 next_state[:, 5] = e_psi + deltaT * (wz - (vx * np.cos(e_psi) - vy * np.sin(e_psi)) / (1 - rho * e_y) * rho)
                 next_state[:, 6] = e_y + deltaT * (vx * np.sin(e_psi) + vy * np.cos(e_psi))
                 next_state[:, 7] = s + deltaT * (vx * np.cos(e_psi) - vy * np.sin(e_psi)) / (1 - rho * e_y)
