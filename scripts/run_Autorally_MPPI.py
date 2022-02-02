@@ -37,8 +37,6 @@ def main():
             logger.log()
             if logger.crash == 1:
                 break
-            renderer1.show()
-            renderer1.clear()
             print(state_next, "    ", cost)
     finally:
         agent1.dynamics.shutdown()
