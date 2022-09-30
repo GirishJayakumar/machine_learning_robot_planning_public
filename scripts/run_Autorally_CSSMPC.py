@@ -36,7 +36,7 @@ def main():
             print("number of laps: ", logger.get_num_of_laps(), "number of collisions: ",
                   logger.get_num_of_collisions(), "number of controller failures: ", logger.get_num_of_failures())
     finally:
-        pass
+        logger.shutdown()
 
 if __name__ == '__main__':
     main()
