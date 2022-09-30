@@ -14,7 +14,7 @@ In terminal, change directory to `robot_planning` and run `pip install -r requir
 2. Intall pytorch with the correct options selected for your machine https://pytorch.org/get-started/locally/
 
 ### Install the robot_planning repo
-Run the following commands 3 commands to install the repo:
+Run the following 3 commands to install the repo:
 1. `cp setup.py ..`
 2. `cd ..`
 3. `pip install -e .`
