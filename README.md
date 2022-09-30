@@ -14,12 +14,15 @@ In terminal, change directory to `robot_planning` and run `pip install -r requir
 2. Intall pytorch with the correct options selected for your machine https://pytorch.org/get-started/locally/
 
 ### Install the robot_planning repo
-Copy `setup.py` outside of the `robot_planning` directory and then from the parent directory run `pip install -e .`. That is, run the following commands 3 commands: `cp setup.py ..`, `cd ..`, `pip install -e .`.
+Run the following commands 3 commands to install the repo:
+1. `cp setup.py ..`
+2. `cd ..`
+3. `pip install -e .`
 
 
 ## Editing this repository
 
-1. Create your own branch from master and name it <firstname>-<lastname>
+1. Create your own branch from master and name it firstname-lastname
 2. Only push directly to your personal branch
 3. Create new tests when you add a new feature or script, and ensure that all tests still pass with your changes
 3. When a branch is stable and changes are ready to be shared, create a pull request on the master branch for the team to review
