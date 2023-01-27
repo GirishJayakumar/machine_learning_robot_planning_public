@@ -9,3 +9,4 @@ moviepy
 cvxpy
 torch==1.10.1
 Mosek
+movieio
