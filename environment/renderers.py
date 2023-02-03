@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from robot_planning.utils import AUTORALLY_DYNAMICS_DIR
 import os
 import imageio
-import moviepy.video.io.ImageSequenceClip
 
 
 class Renderer():
@@ -135,20 +134,6 @@ class MatplotlibRenderer(Renderer):
 
         gif_dir = self.save_dir / 'movie.gif'
         imageio.mimsave(gif_dir, images, duration=duration)
-
-    def render_mp4(self, duration=0.5):
-        image_folder = self.save_dir
-        fps = int(1 / duration)
-
-        frames = [0 for _ in range(5)]
-        for frame in range(self.frame):
-            frames.append(frame)
-        frames += [self.frame - 1 for _ in range(5)]
-
-        image_files = [os.path.join(image_folder, 'frame{}.png'.format(frame))
-                       for frame in frames]
-        clip = moviepy.video.io.ImageSequenceClip.ImageSequenceClip(image_files, fps=fps)
-        clip.write_videofile(str(self.save_dir / 'movie.mp4'))
 
 
 class MPPIMatplotlibRenderer(MatplotlibRenderer):
