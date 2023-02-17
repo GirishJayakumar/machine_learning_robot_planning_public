@@ -7,4 +7,3 @@ pytest
 imageio
 torch==1.10.1
 Mosek
-movieio
