@@ -334,3 +334,11 @@ class AutorallyMatplotlibRenderer(MatplotlibRenderer):
                 previous_state = state
         else:
             pass
+    def showOpponentPrediction(self, coord1, coord2):
+        self._axis.plot(coord1, coord2, marker = 'x')
+        self._axis.autoscale(enable=True, axis='both', tight=False)
+    def showCurrent(self, coord1, coord2):
+        self._axis.plot(coord1, coord2, marker = 'o')
+        self._axis.autoscale(enable=True, axis='both', tight=False)
+
+
