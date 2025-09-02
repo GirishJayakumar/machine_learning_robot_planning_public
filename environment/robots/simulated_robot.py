@@ -36,8 +36,6 @@ class SimulatedRobot(Robot):
         noise_level = 0.01  # Initial noise level (this can be adjusted)
         noise_level_bounds = (1e-10, 0.1)  # Bounds on the noise level (this can also be adjusted)
         #hyperparameter tuning
-        self.kernel = C(constant_value_bounds=(1e-5, 1e6)) * (RBF(length_scale_bounds=(1e-5, 1e5)) + Matern(length_scale_bounds=(1e-5, 1e5)) + ExpSineSquared(length_scale_bounds=(1e-5, 1e5))) + WhiteKernel(noise_level_bounds=(1e-12, 1e2))
-        self.gp_model = GaussianProcessRegressor(kernel=self.kernel, alpha=0.0001, n_restarts_optimizer=10)
         self.old_opp_state = None
 
 
@@ -70,22 +68,32 @@ class SimulatedRobot(Robot):
             self.observer = factory_from_config(observer_factory_base, config_data, observer_section_name)
         if config_data.has_option(section_name, 'robot_index'):
             self.robot_index = int(config_data.get(section_name, 'robot_index'))
+        self.opponent_inputs = np.zeros((1, 8))
+        self.opponent_outputs = np.zeros((1, 8))
         # Adjusted bounds
-        self.kernel = C(constant_value_bounds=(1e-6, 1e7)) * (RBF(length_scale_bounds=(1e-5, 1e9)) + Matern(length_scale_bounds=(1e-5, 1e9)) + ExpSineSquared(length_scale_bounds=(1e-5, 1e9), periodicity_bounds=(1e-5, 1e7))) + WhiteKernel(noise_level_bounds=(1e-13, 1e3))
+        self.kernel = C(constant_value_bounds=(1e-6, 1e7)) * (RBF(length_scale_bounds=(1e-5, 1e9)) +
+                                                              Matern(length_scale_bounds=(1e-5, 1e9)) +
+                                                              ExpSineSquared(length_scale_bounds=(1e-5, 1e9), periodicity_bounds=(1e-5, 1e7))) + WhiteKernel(noise_level_bounds=(1e-13, 1e3))
         self.gp_model = GaussianProcessRegressor(kernel=self.kernel, alpha=0.0001, n_restarts_optimizer=10)
 
+    #self.dynamics.track.localize
     def train_gp_model(self):
         self.gp_model.fit(self.opponent_inputs, self.opponent_outputs)
 
-    def predict_opponent_state(self, opponent_state):
+    def predict_opponent_state(self, map_opponent_state):
         # Predict the next state of the opponent using the GP model
-        X = opponent_state.reshape(1, -1)
-        # X = np.repeat(opponent_state[None, :], len(opponent_state), axis=0)
-        # X[:, self.robot_index * self.dynamics.get_state_dim():self.robot_index * self.dynamics.get_state_dim() + self.dynamics.get_action_dim()] = self.actions
+        X = map_opponent_state.reshape(1, -1)
         Y_pred = self.gp_model.predict(X)
         opponent_state_pred = Y_pred.mean(axis=0)
         return opponent_state_pred
 
+    def convertCartesianToMap(self, opp_state):
+        new_opp_state = np.copy(opp_state)
+        x_y_coords = [opp_state[-2], opp_state[-1]]
+        M = np.array([[x_y_coords[0]], [x_y_coords[1]]])
+        new_header, d_val, s_val = self.dynamics.track.localize(M, new_opp_state[-3])
+        new_opp_state[-3], new_opp_state[-2], new_opp_state[-1] = new_header, d_val, s_val
+        return new_opp_state
     @property
     def delta_t(self):
         return self.dynamics.get_delta_t()
@@ -258,18 +266,19 @@ class SimulatedRobot(Robot):
         if self.renderer is not None and self.renderer.active:
             self.render_all()
         state_cur = self.get_state()
-
+        #map_opp_state = self.convertCartesianToMap(opp_state)
         # Predict opponent's state using GP model
         if self.gp_model is not None:
             # Add new state to training data
-            self.update_training_data(opp_state)
+            self.update_training_data(opp_state)#map_opp_state)
 
             # Train GP model
             start_time = time.time()
             self.train_gp_model()
 
             # Predict the opponent's state
-            opp_state_pred = self.predict_opponent_state(opp_state)
+            opp_state_pred = self.predict_opponent_state(opp_state)#map_opp_state)
+            print("opp_state_pred:", opp_state_pred)
             end_time = time.time()
 
             # Print debug info
@@ -293,4 +302,4 @@ class SimulatedRobot(Robot):
         self.set_state(state_next)
         self.steps += 1
 
-        return state_next, cost
+        return state_next, cost, opp_state_pred
